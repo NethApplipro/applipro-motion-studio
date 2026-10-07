@@ -12,6 +12,7 @@ Studio de films produit Applipro en code (Remotion + React). Le modèle écrit l
 - `npm run typecheck` avant chaque rendu.
 
 ## Organisation
+- `brand/logo-mark.svg` et `src/components/Logo.tsx` : symbole officiel (un seul tracé, animable avec `draw`).
 - `brand/brand.json` : seule source de la charte (Poppins, palette officielle, baseline). Ne jamais coder une couleur en dur ailleurs.
 - `films/<film>/` : `brief.md`, `style-guide.md` et `shotlist.md`, écrits et validés AVANT le code.
 - `src/films/<film>/timeline.ts` : toute la chronologie et les sons. Une frame = un nombre, à un seul endroit.
@@ -37,4 +38,4 @@ Planche contact → `reviews/CRITIC.md` (7 critères notés de 1 à 10) → corr
 Livrable si la moyenne est ≥ 8 et qu'aucun critère n'est < 7. Maximum 3 passes, consignées dans `reviews/<id>/review.md`.
 
 ## Sécurité
-Clés API dans `.env` (jamais dans un prompt ni dans git). Licence Remotion : vérifier https://www.remotion.dev/docs/license avant tout usage commercial. Une entreprise de plus de 3 personnes a besoin d'une licence payante.
+Clés API dans `.env` (jamais dans un prompt ni dans git). Licence Remotion : gratuite tant qu'Applipro compte au plus 3 personnes. Repasser sur https://www.remotion.dev/docs/license si l'équipe grandit.

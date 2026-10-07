@@ -17,7 +17,7 @@ Lire `CLAUDE.md` d'abord. Chaque étape a une **gate** : s'arrêter et montrer l
    Gate : images fixes validées.
 6. **Premier montage.** `npm run render -- <Film> 9x16`, puis `npm run critic -- out/<Film>-9x16.mp4`. Appliquer `reviews/CRITIC.md` : noter, corriger les 3 pires défauts, re-rendre. 3 passes au maximum.
 7. **Son et formats.** Vérifier le calage des sons dans `timeline.ts` (SFX). Rendre `1x1` et `16x9` et passer chacun dans `critic`. Lancer `node scripts/determinism.mjs <Film>-9x16 <frame>`.
-8. **Livraison.** Les MP4 dans `out/`, un `review.md` final (notes, défauts restants, choix faits). Résumer à l'utilisateur ce qui est livré et ce qui reste à valider (licence, musique, voix).
+8. **Livraison.** Les MP4 dans `out/`, un `review.md` final (notes, défauts restants, choix faits). Résumer à l'utilisateur ce qui est livré et ce qui reste à valider (musique, voix).
 
 ## Garde-fous
 - Ne jamais inventer d'écran, de fonctionnalité, de client, de logo tiers ni de chiffre.

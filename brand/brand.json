@@ -22,7 +22,18 @@
     "red": "#CC2936"
   },
   "gradient": "linear-gradient(135deg, #3374FF 0%, #2F62E6 55%, #1E3AA8 100%)",
-  "fonts": { "sans": "Poppins" },
+  "fonts": {
+    "sans": "Poppins"
+  },
   "icons": "Remix Icon (remixicon.com)",
-  "radius": { "card": 16, "button": 10, "icon": 10 }
+  "radius": {
+    "card": 16,
+    "button": 10,
+    "icon": 10
+  },
+  "logo": {
+    "mark": "brand/logo-mark.svg",
+    "source": "brand/logo-source.jpg",
+    "note": "Symbole vectorisé depuis le JPG ; le mot « Applipro » est composé en Poppins Medium."
+  }
 }

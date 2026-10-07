@@ -7,7 +7,7 @@
 | Rythme | 8 | Un événement toutes les 1 à 3 s, calé sur 120 BPM |
 | Qualité du mouvement | 8 | Téléphone `heavy`, micro UI `snappy`, aucun rebond |
 | Lisibilité (360 px) | 7 | Sous-titres lisibles ; le texte secondaire de l'UI reste petit (c'est du décor) |
-| Fidélité à la marque | 8 | Poppins, palette officielle, Remix Icon ; logo redessiné en attente du SVG officiel |
+| Fidélité à la marque | 8 | Poppins, palette officielle, Remix Icon, symbole officiel vectorisé |
 | Finition | 8 | Superposition de sous-titres et écran vide corrigés en passe 2 |
 | **Moyenne** | **7,9** | |
 
@@ -19,7 +19,7 @@
 ## Défauts restants (passe 3 possible)
 1. 11,0–12,5 s : scène chiffre un peu nue. Ajouter un fond de 100 points ou d'avatars seedés qui se remplissent.
 2. 8,2–11 s : bas de l'écran Copilote vide. Faire monter le clavier ou ajouter une 2ᵉ question.
-3. Logo : remplacer `LogoMark` par le SVG officiel.
+3. Logo : le symbole est vectorisé depuis un JPG. Le remplacer par le SVG d'origine s'il est retrouvé.
 
 Verdict : **LIVRABLE en pilote interne.** Passe 3 recommandée avant diffusion publique.
 Contrôles : déterminisme ✓ (frame 230), loudness -14,7 LUFS / -1,0 dBTP, 15 s, H.264.

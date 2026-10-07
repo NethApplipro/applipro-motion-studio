@@ -24,7 +24,11 @@ Prérequis : Node 22+ et ffmpeg. Avec Claude Code, ouvre le dossier et demande p
 | `reviews/CRITIC.md` | Grille du directeur motion sévère |
 | `.claude/skills/motion-reel/` | Le pipeline complet en 8 étapes pour Claude Code |
 
+## Marque
+- `brand/logo-mark.svg` : symbole vectorisé d'après `brand/logo-source.jpg`. Remplace-le par le SVG d'origine si l'agence le retrouve.
+
+## Licence Remotion
+Applipro compte au plus 3 personnes : la licence gratuite de Remotion s'applique. Il faudra passer en licence entreprise si l'équipe grandit (voir https://www.remotion.dev/docs/license).
+
 ## À compléter
-- **Logo officiel en SVG**, à déposer dans `brand/`. Le symbole actuel est redessiné d'après la planche DA.
-- **Licence Remotion** pour un usage commercial : https://www.remotion.dev/docs/license
 - En option : voix off (ElevenLabs, clé dans `.env`) et musique sous licence pour remplacer la nappe de synthèse.

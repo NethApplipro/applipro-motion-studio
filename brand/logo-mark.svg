@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 670 670">
+  <!-- Symbole Applipro vectorisé d'après brand/logo-source.jpg (un seul tracé fermé qui se croise). -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3374FF"/><stop offset=".55" stop-color="#2F62E6"/><stop offset="1" stop-color="#1A2A8C"/>
+    </linearGradient>
+  </defs>
+  <path d="M120 215 H415 A50 50 0 0 1 465 265 V415 A50 50 0 0 1 415 465 H265 A50 50 0 0 1 215 415 V115 A90 90 0 0 1 305 25 H500 A140 140 0 0 1 640 165 V500 A140 140 0 0 1 500 640 H170 A140 140 0 0 1 30 500 V305 A90 90 0 0 1 120 215 Z" fill="none" stroke="url(#g)" stroke-width="50" stroke-linejoin="round"/>
+</svg>
