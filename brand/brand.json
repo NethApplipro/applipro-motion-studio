@@ -1,0 +1,28 @@
+{
+  "_source": "Direction artistique Applipro (planches « Direction Artistique » et « Couleur »).",
+  "name": "Applipro",
+  "url": "applipro.fr",
+  "baseline": "Leader du livret d'accueil digital",
+  "colors": {
+    "dark": "#0E0E52",
+    "blue": "#3374FF",
+    "blue20": "#D0DDFF",
+    "blue05": "#ECEEFE",
+    "black": "#121624",
+    "grey80": "#404350",
+    "grey60": "#6E707C",
+    "grey40": "#9B9DA7",
+    "grey20": "#C9CAD3",
+    "grey10": "#E0E1E9",
+    "grey05": "#ECECF4",
+    "white": "#F7F7FF",
+    "green": "#00A878",
+    "green20": "#CCEEE4",
+    "orange": "#DC7224",
+    "red": "#CC2936"
+  },
+  "gradient": "linear-gradient(135deg, #3374FF 0%, #2F62E6 55%, #1E3AA8 100%)",
+  "fonts": { "sans": "Poppins" },
+  "icons": "Remix Icon (remixicon.com)",
+  "radius": { "card": 16, "button": 10, "icon": 10 }
+}
