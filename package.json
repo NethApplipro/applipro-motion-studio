@@ -5,28 +5,37 @@
   "description": "Studio motion design Applipro : films produit en code (Remotion), rendus déterministes, boucle de critique.",
   "type": "module",
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "studio": "remotion studio",
-    "sfx": "node scripts/sfx.mjs",
-    "render": "node scripts/render-all.mjs",
+    "check": "node scripts/check.mjs",
     "stills": "node scripts/stills.mjs",
-    "critic": "bash scripts/critic.sh",
+    "render": "node scripts/render-all.mjs",
+    "critic": "node scripts/critic.mjs",
+    "determinism": "node scripts/determinism.mjs",
+    "new-film": "node scripts/new-film.mjs",
+    "ref": "node scripts/ref.mjs",
+    "sfx": "node scripts/sfx.mjs",
+    "icons": "node scripts/build-icons.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.3.0",
-    "@remotion/bundler": "^4.0.534",
-    "@remotion/cli": "^4.0.534",
-    "@remotion/fonts": "^4.0.534",
-    "@remotion/renderer": "^4.0.534",
-    "@remotion/zod-types": "^4.0.534",
+    "@remotion/bundler": "4.0.534",
+    "@remotion/cli": "4.0.534",
+    "@remotion/fonts": "4.0.534",
+    "@remotion/renderer": "4.0.534",
+    "@remotion/zod-types": "4.0.534",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "remixicon": "^4.9.1",
-    "remotion": "^4.0.534",
-    "zod": "^3.22.3"
+    "remotion": "4.0.534",
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
     "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

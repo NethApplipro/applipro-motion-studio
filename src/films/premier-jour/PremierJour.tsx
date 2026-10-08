@@ -159,7 +159,7 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 
 			{p.musique ? <Audio src={staticFile('audio/bed.wav')} volume={(f) => interpolate(f, [0, 6, DURATION - 20, DURATION], [0, 0.55, 0.55, 0], {extrapolateRight: 'clamp'})} /> : null}
 			{SFX.map((s, i) => (
-				<Sequence key={i} from={s.at} durationInFrames={45} layout="none">
+				<Sequence key={i} from={s.at} layout="none">
 					<Audio src={staticFile(`audio/${s.file}`)} volume={s.volume} />
 				</Sequence>
 			))}

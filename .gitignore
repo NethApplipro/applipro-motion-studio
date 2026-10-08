@@ -1,5 +1,10 @@
 node_modules/
 out/
-reviews/**/frames/
 .env
 *.log
+# Images de contrôle régénérables (npm run stills / critic / ref) : seules les notes sont versionnées.
+reviews/**/*.jpg
+reviews/**/*.png
+reviews/**/tech.md
+reviews/**/frames/
+references/inbox/**/*.jpg

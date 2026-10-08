@@ -1,18 +1,26 @@
-// Images fixes de contrôle (étape « stills » avant tout rendu vidéo).
-// node scripts/stills.mjs [Film] [format] [frames...]   ex. : node scripts/stills.mjs PremierJour 9x16 0 90 200
+// Images fixes de contrôle (étape « stills » avant tout rendu vidéo) + planche récapitulative.
+//   npm run stills -- PremierJour 9x16                 → 10 images réparties sur le film
+//   npm run stills -- PremierJour 9x16 0 90 200        → images précises (frames)
 import {renderStill} from '@remotion/renderer';
-import {mkdirSync} from 'node:fs';
-import {browserExecutable, getComposition} from './lib.mjs';
+import {mkdirSync, rmSync} from 'node:fs';
+import {browserExecutable, getComposition, parseArgs, tile} from './lib.mjs';
 
-const [film = 'PremierJour', format = '9x16', ...rest] = process.argv.slice(2);
-const frames = rest.length ? rest.map(Number) : [20, 70, 110, 140, 210, 240, 300, 325, 360, 420, 449];
+const {rest} = parseArgs();
+const [film = 'PremierJour', format = '9x16', ...frameArgs] = rest;
 const id = `${film}-${format}`;
 const dir = `reviews/${film}/${format}/stills`;
+rmSync(dir, {recursive: true, force: true});
 mkdirSync(dir, {recursive: true});
 
 const {serveUrl, composition} = await getComposition(id);
+const n = composition.durationInFrames;
+const frames = frameArgs.length ? frameArgs.map(Number) : Array.from({length: 10}, (_, i) => Math.round(((i + 0.5) * (n - 1)) / 10));
+const files = [];
 for (const frame of frames) {
-	const output = `${dir}/f${String(frame).padStart(3, '0')}.jpg`;
+	const output = `${dir}/f${String(frame).padStart(4, '0')}.jpg`;
 	await renderStill({serveUrl, composition, frame, output, imageFormat: 'jpeg', jpegQuality: 90, browserExecutable});
+	files.push(output);
 	console.log(output);
 }
+const sheet = `reviews/${film}/${format}/sheet.jpg`;
+if (tile(files, sheet, {cols: Math.min(5, files.length), width: format === '16x9' ? 480 : 300})) console.log(`✓ ${sheet}`);
