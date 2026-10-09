@@ -94,7 +94,7 @@ export const QAProbe: React.FC<{children: React.ReactNode}> = ({children}) => {
 				const kind = el.getAttribute('data-qa');
 				if (r.left < -1 || r.top < -1 || r.right > width + 1 || r.bottom > height + 1) {
 					issues.push({type: 'texteHorsCadre', detail: `${describe(el)} sort du cadre (x ${px(r.left)}→${px(r.right)}, y ${px(r.top)}→${px(r.bottom)}, cadre ${width}×${height}).`});
-				} else if (kind !== 'ui' && r.left < safe.l - 1 || r.top < safe.t - 1 || r.right > safe.r + 1 || r.bottom > safe.b + 1) {
+				} else if (kind !== 'ui' && (r.left < safe.l - 1 || r.top < safe.t - 1 || r.right > safe.r + 1 || r.bottom > safe.b + 1)) {
 					issues.push({type: 'texteHorsZoneSure', detail: `${describe(el)} déborde de la zone sûre (texte y ${px(r.top)}→${px(r.bottom)}, x ${px(r.left)}→${px(r.right)} ; zone y ${px(safe.t)}→${px(safe.b)}, x ${px(safe.l)}→${px(safe.r)}).`});
 				}
 				const min = (kind === 'caption' ? 58 : kind === 'ui' ? 24 : 30) * u;

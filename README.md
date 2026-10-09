@@ -52,7 +52,7 @@ Ouvre le dossier dans l'agent et demande par exemple :
 | Film | Style | Cible | Verdict |
 |---|---|---|---|
 | `PremierJour` | editorial-clair, 15 s | interne (pilote) | PILOTE INTERNE (7,86) |
-| `CoffreFort` | morph-continu, 14 s | interne | voir `reviews/CoffreFort-1x1/review.md` |
+| `CoffreFort` | morph-continu, 14 s, boucle | interne | PILOTE INTERNE (7,71, après 3 passes) |
 
 ## Marque
 - `brand/logo-mark.svg` : symbole vectorisé d'après `brand/logo-source.jpg`. Remplace-le par le SVG d'origine si l'agence le retrouve.

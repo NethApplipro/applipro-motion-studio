@@ -58,7 +58,8 @@ for (const f of rendered) {
 	const qa = JSON.parse(read(`reviews/${id}/qa.json`) ?? 'null');
 	check(`${id} : QA finale réussie`, qa?.mode === 'final' && qa.technicalPassed === true, qa ? JSON.stringify(Object.fromEntries(Object.entries(qa.counts).filter(([, v]) => v)) ) : 'qa.json absent');
 	const review = JSON.parse(read(`reviews/${id}/review.json`) ?? 'null');
-	if (!review) { check(`${id} : critique écrite`, f !== '9x16' && f !== '1x1', 'review.json absent'); continue; }
+	// Même règle que npm run verdict : cible public → chaque format critiqué ; interne → au moins un (contrôlé plus bas).
+	if (!review) { check(`${id} : critique écrite`, cible !== 'public', 'review.json absent (accepté pour une cible interne)'); continue; }
 	const errors = reviewErrors(review);
 	check(`${id} : review.json valide`, errors.length === 0, errors.join(' ; '));
 	check(`${id} : critique par un regard séparé`, !/fabricant|moi-même/i.test(review.critique ?? ''), review.critique);
@@ -67,6 +68,8 @@ for (const f of rendered) {
 		check(`${id} : verdict accepté (${v.statut})`, v.accepte, v.raisons.join(' ; '));
 	}
 }
+
+check('au moins un format critiqué', rendered.some((f) => existsSync(`reviews/${Name}-${f}/review.json`)));
 
 const ok = results.filter((r) => r.ok).length;
 const md = `# Éval automatique — ${slug}\n\n${ok}/${results.length} contrôles réussis.\n\n| | Contrôle | Détail |\n|---|---|---|\n${results.map((r) => `| ${r.ok ? '✅' : '❌'} | ${r.label} | ${r.detail ?? ''} |`).join('\n')}\n`;

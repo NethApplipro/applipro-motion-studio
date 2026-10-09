@@ -193,7 +193,7 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 
 				{closeIn > 0.001 ? (
 					<div style={{position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: px(kind === 'vertical' ? 90 : 56), color: '#FFFFFF', textAlign: 'center'}}>
-						<div style={{fontSize: closeSize(kind === 'vertical' ? 54 : 66, 58), fontWeight: 600, letterSpacing: -px(2.5), lineHeight: 1.12}}>
+						<div style={{fontSize: closeSize(kind === 'vertical' ? 50 : 66, 58), fontWeight: 600, letterSpacing: -px(2.5), lineHeight: 1.12}}>
 							<div data-qa="caption" style={{opacity: line1.opacity, transform: line1.transform, filter: line1.filter}}>{p.signature[0]}</div>
 							<div data-qa="caption" style={{opacity: line2.opacity, transform: line2.transform, filter: line2.filter}}>{p.signature[1]}</div>
 						</div>
