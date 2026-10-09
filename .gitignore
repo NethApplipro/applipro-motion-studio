@@ -8,3 +8,5 @@ reviews/**/*.png
 reviews/**/tech.md
 reviews/**/frames/
 references/inbox/**/*.jpg
+reviews/**/qa.md
+reviews/**/qa.json

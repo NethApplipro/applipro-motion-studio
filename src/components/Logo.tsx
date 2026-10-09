@@ -1,5 +1,5 @@
 import React, {useId} from 'react';
-import {SANS} from '../lib/brand';
+import {BRAND, SANS} from '../lib/brand';
 
 // Symbole officiel vectorisé d'après brand/logo-source.jpg (voir brand/logo-mark.svg).
 // Un seul tracé fermé qui se croise : on peut donc l'animer comme un trait continu.
@@ -13,9 +13,9 @@ export const LogoMark: React.FC<{size: number; color?: string; draw?: number}> =
 			{color === 'gradient' ? (
 				<defs>
 					<linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-						<stop offset="0" stopColor="#3374FF" />
-						<stop offset=".55" stopColor="#2F62E6" />
-						<stop offset="1" stopColor="#1A2A8C" />
+						{BRAND.logoGradient.map((c, i) => (
+							<stop key={c} offset={[0, 0.55, 1][i]} stopColor={c} />
+						))}
 					</linearGradient>
 				</defs>
 			) : null}

@@ -29,14 +29,19 @@ validation avant de continuer, sauf si l'utilisateur a demandé un « run comple
    style (en composants réutilisables, pas dans le film). Mise en page par format via une table `LAYOUT` et `useFormat()`.
 6. **Stills.** `npm run check`, puis `npm run stills -- <Film> 9x16` et sur 1x1 et 16x9. Regarder chaque image : texte coupé,
    chevauchements, écrans vides, éléments hors cadre. Corriger. **Gate : images fixes validées.**
-7. **Premier montage.** `npm run render -- <Film> 9x16 --draft`, puis `npm run critic -- out/<Film>-9x16.draft.mp4`.
-   Appliquer `reviews/CRITIC.md` : noter les 7 critères, corriger les 3 pires défauts, re-rendre. 3 passes au maximum.
+7. **Capteurs puis premier montage.** `npm run qa -- <Film> 9x16` : boucle de correction jusqu'à zéro (le pire défaut à chaque
+   tour, 5 tours maximum, arrêt si un tour ne progresse pas, cf. `AGENTS.md`). Puis `npm run render -- <Film> 9x16 --draft`
+   et critique **par un regard séparé** (sous-agent `motion-critic` ou passe dédiée) avec `reviews/CRITIC.md` :
+   corriger les 3 pires défauts, re-rendre. 3 passes au maximum.
 8. **Son et formats.** Vérifier le calage des sons dans `timeline.ts`. `npm run render -- <Film>` (3 formats, qualité finale),
-   `npm run critic` sur chacun, `npm run determinism -- <Film>-9x16`.
-9. **Livraison.** MP4 dans `out/` ; `reviews/<Film>-9x16/review.md` (notes, défauts restants, choix faits) ; commit des sources.
+   puis `npm run qa -- <Film>` (contrôle aussi les MP4 : format, frames, son) jusqu'à zéro, `npm run critic` sur chacun.
+9. **Livraison.** MP4 dans `out/` ; `reviews/<Film>-9x16/review.md` (notes, défauts restants, choix faits) ; nouvelles
+   lignes dans `reviews/JOURNAL.md` (un défaut vu deux fois → corriger le studio) ; commit des sources.
    Résumer à l'utilisateur ce qui est livré et ce qui reste à valider (musique sous licence, voix off).
 
 ## Garde-fous
+- Marquer avec `data-qa="caption"` ou `data-qa="text"` tout texte qui doit être lu, sinon les capteurs ne le voient pas.
+- Ne jamais déclarer un contrôle réussi sans l'avoir exécuté.
 - Ne jamais inventer d'écran, de fonctionnalité, de client, de logo tiers ni de chiffre.
 - Ne jamais utiliser le nom ou le logo d'un client (ex. Eiffage) sans accord écrit : « votre entreprise » ou un prénom.
 - Si un asset manque (logo SVG, capture d'écran, musique), le dire et s'arrêter plutôt que d'improviser.

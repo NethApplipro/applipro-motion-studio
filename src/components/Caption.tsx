@@ -31,7 +31,7 @@ export const Captions: React.FC<{cues: Cue[]; until: number; x: number; y: numbe
 				const exit = sp(frame, fps, next - 4, 'snappy');
 				const shift = size * 0.6;
 				return (
-					<div key={i} style={{position: 'absolute', left: x, top: y, width, fontFamily: SANS, fontSize: size, fontWeight: 600, lineHeight: 1.08, letterSpacing: -size * 0.035, color: C.dark, textAlign: align, opacity: enter * (1 - exit), transform: `translateY(${(1 - enter) * shift - exit * shift}px)`}}>
+					<div key={i} data-qa="caption" style={{position: 'absolute', left: x, top: y, width, fontFamily: SANS, fontSize: size, fontWeight: 600, lineHeight: 1.08, letterSpacing: -size * 0.035, color: C.dark, textAlign: align, opacity: enter * (1 - exit), transform: `translateY(${(1 - enter) * shift - exit * shift}px)`}}>
 						<Rich text={cue.text} />
 					</div>
 				);

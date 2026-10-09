@@ -35,5 +35,10 @@
     "mark": "brand/logo-mark.svg",
     "source": "brand/logo-source.jpg",
     "note": "Symbole vectorisé depuis le JPG ; le mot « Applipro » est composé en Poppins Medium."
-  }
+  },
+  "logoGradient": [
+    "#3374FF",
+    "#2F62E6",
+    "#1A2A8C"
+  ]
 }

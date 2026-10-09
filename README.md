@@ -8,6 +8,7 @@ npm install
 npm run setup         # prépare le navigateur de rendu et les sons
 npm run studio        # aperçu interactif : timeline, lecture, textes modifiables dans « Props »
 npm run render        # rend les 3 formats dans out/
+npm run qa            # capteurs automatiques : tous les compteurs doivent être à 0
 ```
 Prérequis : Node 20+ (22 recommandé). ffmpeg est recommandé pour les planches de contrôle (`brew install ffmpeg`).
 
@@ -32,8 +33,9 @@ Ouvre le dossier dans l'agent et demande par exemple :
 | `docs/BRIEFER.md` | Comment écrire un brief qui donne un film moderne |
 | `films/` | Brief, style et shot list de chaque film (`_template/` pour en créer un) |
 | `src/` | Moteur : ressorts, formats, composants, écrans de l'app, films |
-| `scripts/` | Rendu, stills, critique, déterminisme, nouveau film, référence, sons, icônes |
-| `reviews/` | Grille de critique et notes de chaque rendu |
+| `scripts/` | Rendu, stills, capteurs `qa`, critique, déterminisme, nouveau film, référence, sons, icônes |
+| `reviews/` | Grille de critique, journal des défauts (`JOURNAL.md`), rapports `qa.md` et notes de chaque rendu |
+| `.claude/agents/motion-critic.md` | Critique indépendant (Claude Code), en lecture seule |
 
 ## Marque
 - `brand/logo-mark.svg` : symbole vectorisé d'après `brand/logo-source.jpg`. Remplace-le par le SVG d'origine si l'agence le retrouve.

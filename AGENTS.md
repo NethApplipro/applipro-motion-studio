@@ -18,6 +18,7 @@ npm run studio                      # aperçu interactif, réglages modifiables 
 npm run new-film -- <slug> "Titre"  # crée films/<slug>/ + src/films/<slug>/ et l'enregistre
 npm run stills -- <Film> <format> [frames…]   # images de contrôle → reviews/<Film>/<format>/
 npm run render -- <Film> [formats…] [--draft] # MP4 → out/ (H.264 CRF 16, son à -14 LUFS)
+npm run qa -- <Film> [formats…] [--step=N] [--loop]  # capteurs automatiques, doivent tous être à 0
 npm run critic -- out/<Film>-<format>.mp4     # planches + loudness → reviews/<id>/
 npm run determinism -- <Film>-<format> [frame]
 npm run ref -- <vidéo|image> [nom]  # prépare l'analyse d'une référence → references/inbox/<nom>/
@@ -47,7 +48,8 @@ Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder le
 | `src/components/` | Téléphone, tap, sous-titres, logo, cartes, écrans de l'app (`app/`). |
 | `src/lib/` | `motion.ts` (sp, track, presets, mulberry32, BEAT), `format.ts` (useFormat), `brand.ts`, `fonts.ts`. |
 | `scripts/` | Outils en Node, multiplateformes. `lib.mjs` = navigateur, ffmpeg, bundle. |
-| `reviews/` | `CRITIC.md` (grille) et `review.md` par rendu. Les images générées ne sont pas versionnées. |
+| `reviews/` | `CRITIC.md` (grille), `JOURNAL.md` (mémoire des défauts), `qa.md` et `review.md` par rendu. Les images générées ne sont pas versionnées. |
+| `src/components/QAProbe.tsx` | Capteur QA (mesures dans le navigateur pendant `npm run qa`). |
 
 ## Règles de rendu (non négociables)
 - Chaque image est une **fonction pure du temps** (`useCurrentFrame`). Interdit : transitions CSS, `setTimeout`, `requestAnimationFrame`, `Math.random()`, `Date`, état React qui évolue entre deux frames.
@@ -66,10 +68,36 @@ Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder le
 - Texte lisible à 360 px de large : sous-titres de 58 px minimum en 1080.
 - Chiffres et affirmations : uniquement depuis des sources Applipro réelles (brief). Jamais de nom ni de logo client sans accord écrit.
 
-## Boucle qualité
-`stills` → regarder → corriger → `render --draft` → `critic` → noter avec `reviews/CRITIC.md` (7 critères sur 10) →
-corriger les 3 pires défauts → re-rendre. Livrable si la moyenne est ≥ 8 et qu'aucun critère n'est < 7. 3 passes au maximum,
-consignées dans `reviews/<id>/review.md`. Terminer par `npm run check` et `npm run determinism`.
+## Capteurs automatiques (`npm run qa`)
+Un film ne sort que si **tous les compteurs sont à zéro** (`reviews/<Film>-<format>/qa.md`, code de sortie 1 sinon) :
+erreurs · texteHorsCadre · texteHorsZoneSure · texteTropPetit · chevauchement · couleurHorsCharte · tempsMort ·
+nonDeterministe · boucle (avec `--loop`) · fichierVideo (H.264, yuv420p bt709, AAC, 30 fps, nombre exact de frames) · loudness.
+- Les mesures viennent de `src/components/QAProbe.tsx`, qui enveloppe chaque film (sans effet sur l'image).
+- **Marquer les textes qui doivent être lus** : `data-qa="caption"` (sous-titres, titres : ≥ 58 px en 1080) ou
+  `data-qa="text"` (autres textes importants : ≥ 30 px). Les textes décoratifs et ceux des écrans d'app ne sont pas marqués.
+- Zone sûre : 9:16 → 220 px en haut, 420 px en bas, 150 px à droite (interface TikTok/Reels/Shorts), 60 px à gauche ;
+  autres formats → 4 % de chaque côté.
+- Chaque défaut du rapport donne la frame, la preuve et la consigne de correction.
+
+## Boucle de correction (objectif + règle d'arrêt)
+Objectif : `npm run qa` à zéro sur les 3 formats **et** note `reviews/CRITIC.md` ≥ 8 (aucun critère < 7).
+À chaque tour : lire `qa.md`, corriger **le défaut le plus grave**, relancer `npm run qa -- <Film> <format>`.
+Arrêt : objectif atteint · 5 tours · ou un tour sans progrès (même défaut, même compteur) → s'arrêter et expliquer le blocage.
+Ne jamais déclarer réussi un contrôle qui n'a pas été exécuté. Un rendu n'est pas une validation.
+
+## Fabricant et vérificateur séparés
+Celui qui fabrique ne se note pas. Après chaque rendu, la critique est faite par un regard séparé :
+Claude Code → sous-agent `motion-critic` (`.claude/agents/motion-critic.md`, lecture seule) ;
+Codex ou autre agent → nouvelle session, ou passe dédiée, qui suit les mêmes consignes en lisant ce fichier.
+
+## Journal (`reviews/JOURNAL.md`)
+Chaque défaut trouvé y est consigné (date, cause, correction du film, correction du studio).
+**Un défaut qui revient deux fois se corrige dans le studio** (règle, capteur ou brique), pas seulement dans le film.
+
+## Boucle qualité (résumé)
+`stills` → regarder → corriger → `render --draft` → `qa` (zéro) → `critic` + note `CRITIC.md` → corriger les 3 pires défauts →
+re-rendre. Livrable si qa = 0 et moyenne ≥ 8 sans critère < 7. Consigner dans `reviews/<id>/review.md` et `JOURNAL.md`.
+Terminer par `npm run check`, `npm run qa` et `npm run determinism`.
 
 ## Git
 Committer les sources, jamais `out/`. Messages de commit en français, au présent (« Ajouter le film coffre-fort »).

@@ -6,7 +6,7 @@ Clôture : dégradé #3374FF → #1E3AA8 et cercles concentriques blancs à 3–
 Icônes : Remix Icon (générées par `scripts/build-icons.mjs`).
 
 ## Composition
-- 9:16 : sous-titre en haut à gauche (y = 250), téléphone ×1,95 qui déborde en bas.
+- 9:16 : sous-titre en haut à gauche (y = 250, largeur 820 pour laisser libre la colonne de boutons des réseaux), téléphone ×1,95 qui déborde en bas.
 - 1:1 : sous-titre en haut, téléphone ×1,15.
 - 16:9 : sous-titre à gauche, téléphone à droite ×1,35.
 

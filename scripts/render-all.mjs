@@ -21,7 +21,7 @@ for (const format of formats) {
 	const final = `out/${id}${suffix}.mp4`;
 	let last = -1;
 	await renderMedia({
-		serveUrl, composition, codec: 'h264', crf: draft ? 28 : 16, pixelFormat: 'yuv420p', scale: draft ? 0.5 : 1,
+		serveUrl, composition, codec: 'h264', crf: draft ? 28 : 16, pixelFormat: 'yuv420p', colorSpace: 'bt709', scale: draft ? 0.5 : 1,
 		outputLocation: raw, browserExecutable,
 		onProgress: ({progress}) => {
 			const pct = Math.floor(progress * 10) * 10;

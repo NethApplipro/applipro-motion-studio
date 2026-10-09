@@ -2,6 +2,10 @@ import React from 'react';
 import {Composition, Folder} from 'remotion';
 import './lib/fonts';
 import {FILMS} from './films/registry';
+import {withQA} from './components/QAProbe';
+
+// Chaque film est enveloppé par le capteur QA (inactif hors `npm run qa`, sans effet sur l'image).
+const WRAPPED = FILMS.map((film) => ({...film, component: withQA(film.component)}));
 
 // Un film = un dossier dans le Studio, décliné en 3 formats recomposés depuis la même timeline.
 export const FORMATS = [
@@ -12,7 +16,7 @@ export const FORMATS = [
 
 export const Root: React.FC = () => (
 	<>
-		{FILMS.map((film) => (
+		{WRAPPED.map((film) => (
 			<Folder key={film.id} name={film.id}>
 				{FORMATS.map((f) => (
 					<Composition

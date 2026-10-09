@@ -6,6 +6,8 @@ Config.setJpegQuality(95);
 Config.setCodec('h264');
 Config.setCrf(16);
 Config.setPixelFormat('yuv420p');
+// bt709 = standard vidéo HD (plage TV). Sans lui, les images JPEG donnent du yuvj420p « plein écart ».
+Config.setColorSpace('bt709');
 Config.setOverwriteOutput(true);
 
 // Si Remotion ne peut pas télécharger son Chrome (réseau filtré), pointer vers un binaire local :

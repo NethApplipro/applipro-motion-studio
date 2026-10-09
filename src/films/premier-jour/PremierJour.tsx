@@ -13,7 +13,7 @@ import {DURATION, SFX, T} from './timeline';
 
 // Mise en page recomposée par format (jamais un simple recadrage).
 const LAYOUT: Record<FormatKind, {cap: {x: number; y: number; w: number; size: number}; phone: {cx: number; cy: number; scale: number}; chaos: {x0: number; x1: number; y0: number; y1: number; card: number}; metric: number; logo: number}> = {
-	vertical: {cap: {x: 90, y: 250, w: 900, size: 76}, phone: {cx: 540, cy: 1450, scale: 1.95}, chaos: {x0: 430, x1: 690, y0: 640, y1: 1700, card: 1.5}, metric: 190, logo: 96},
+	vertical: {cap: {x: 90, y: 250, w: 820, size: 76}, phone: {cx: 540, cy: 1450, scale: 1.95}, chaos: {x0: 430, x1: 690, y0: 640, y1: 1700, card: 1.5}, metric: 160, logo: 96},
 	square: {cap: {x: 80, y: 80, w: 920, size: 58}, phone: {cx: 540, cy: 770, scale: 1.15}, chaos: {x0: 380, x1: 700, y0: 330, y1: 1010, card: 1.05}, metric: 170, logo: 80},
 	landscape: {cap: {x: 140, y: 380, w: 760, size: 74}, phone: {cx: 1400, cy: 640, scale: 1.35}, chaos: {x0: 1150, x1: 1600, y0: 160, y1: 960, card: 1.2}, metric: 210, logo: 90},
 };
@@ -131,8 +131,8 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 
 			{frame >= T.metric - 2 && frame < T.end + 20 ? (
 				<div style={{position: 'absolute', left: 0, right: 0, top: height / 2 - k(L.metric) * 0.75, textAlign: 'center', opacity: metricIn * (1 - metricOut), transform: `translateY(${(1 - metricIn) * k(40) - metricOut * k(60)}px)`}}>
-					<div style={{fontSize: k(L.metric), fontWeight: 700, color: C.blue, letterSpacing: -k(L.metric) * 0.04, fontVariantNumeric: 'tabular-nums', lineHeight: 1}}>{metricText}</div>
-					<div style={{fontSize: k(L.metric * 0.24), fontWeight: 500, color: C.dark, marginTop: k(18)}}>{p.chiffreLegende}</div>
+					<div data-qa="text" style={{fontSize: k(L.metric), fontWeight: 700, color: C.blue, letterSpacing: -k(L.metric) * 0.04, fontVariantNumeric: 'tabular-nums', lineHeight: 1}}>{metricText}</div>
+					<div data-qa="text" style={{fontSize: k(L.metric * 0.24), fontWeight: 500, color: C.dark, marginTop: k(30)}}>{p.chiffreLegende}</div>
 				</div>
 			) : null}
 
@@ -144,12 +144,12 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 					})}
 					<div style={{position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: k(kind === 'vertical' ? 120 : 70), color: '#FFFFFF', textAlign: 'center'}}>
 						<div style={{fontSize: k(kind === 'square' ? 66 : 82), fontWeight: 600, letterSpacing: -k(3), lineHeight: 1.1}}>
-							<div style={{opacity: line1 * 0.72, transform: `translateY(${(1 - line1) * k(30)}px)`}}>{p.signature[0]}</div>
-							<div style={{opacity: line2, transform: `translateY(${(1 - line2) * k(30)}px)`}}>{p.signature[1]}</div>
+							<div data-qa="caption" style={{opacity: line1 * 0.72, transform: `translateY(${(1 - line1) * k(30)}px)`}}>{p.signature[0]}</div>
+							<div data-qa="caption" style={{opacity: line2, transform: `translateY(${(1 - line2) * k(30)}px)`}}>{p.signature[1]}</div>
 						</div>
 						<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: k(22)}}>
 							<div style={{opacity: logoDraw > 0 ? 1 : 0}}><Logo size={k(L.logo)} draw={logoDraw} word={logoWord} /></div>
-							<div style={{fontSize: k(L.logo * 0.33), fontWeight: 500, opacity: urlIn * 0.85, transform: `translateY(${(1 - urlIn) * k(14)}px)`}}>
+							<div data-qa="text" style={{fontSize: k(L.logo * 0.33), fontWeight: 500, opacity: urlIn * 0.85, transform: `translateY(${(1 - urlIn) * k(14)}px)`}}>
 								{BRAND.baseline} · {BRAND.url}
 							</div>
 						</div>
