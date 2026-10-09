@@ -1,9 +1,11 @@
 // Capteurs automatiques : le film ne sort que si tous les compteurs sont à zéro.
 //   npm run qa -- PremierJour                 → 3 formats
 //   npm run qa -- PremierJour 9x16 --preflight --step=3 → précontrôle échantillonné, sans MP4
+//   npm run qa -- MonFilm 1x1 --jobs=4      → 4 frames rendues en parallèle (défaut : nombre de cœurs, 4 au plus)
 //   npm run qa -- MonFilm --loop              → ajoute le test de boucle (première = dernière image (test strict))
 // Écrit reviews/<Film>-<format>/qa.json et qa.md. Code de sortie 1 si un compteur n'est pas à zéro.
-import {renderStill} from '@remotion/renderer';
+import {renderFrames, renderStill} from '@remotion/renderer';
+import os from 'node:os';
 import {qaOptions, videoIssues, loudnessIssues} from './qa-validation.mjs';
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -14,6 +16,8 @@ const {flags, rest} = parseArgs();
 const [film = 'PremierJour', ...only] = rest;
 const formats = only.length ? only : FORMATS;
 const {preflight, step} = qaOptions(flags, formats);
+// Onglets en parallèle : --jobs=N, sinon autant que de cœurs (4 au plus, la mémoire suit vite).
+const jobs = Number(flags.jobs ?? Math.max(1, Math.min(4, os.cpus().length)));
 // Réglages propres au film (films/<slug>/qa.json), ex. {"maxGapSeconds": 2} pour un style rapide.
 const filmQa = existsSync(`films/${filmSlug(film)}/qa.json`) ? JSON.parse(readFileSync(`films/${filmSlug(film)}/qa.json`, 'utf8')) : {};
 const maxGap = Number(filmQa.maxGapSeconds ?? 4);
@@ -55,6 +59,28 @@ for (const format of formats) {
 	for (let f = 0; f < n; f += step) frames.push(f);
 	if (frames.at(-1) !== n - 1) frames.push(n - 1);
 
+	// Rendu des frames en parallèle dans un seul navigateur (jobs onglets) : chaque frame arrive avec son image et le
+	// rapport du capteur ; l'analyse se fait ensuite dans l'ordre des frames.
+	const rendered = new Map();
+	const reports = new Map();
+	let done = 0;
+	await renderFrames({
+		serveUrl, composition, inputProps: composition.props ?? {}, frames, outputDir: null, imageFormat: 'jpeg', jpegQuality: 80,
+		concurrency: jobs, browserExecutable, logLevel: 'error', muted: true, envVariables: {REMOTION_QA: '1'},
+		onStart: () => {},
+		onFrameUpdate: () => process.stdout.write(`\r${id} : ${++done}/${frames.length} frames (${jobs} en parallèle)`),
+		onBrowserLog: (log) => {
+			if (log.text.startsWith('QA:')) {
+				const r = JSON.parse(log.text.slice(3));
+				reports.set(r.frame, r);
+			} else if (log.type === 'error') add('erreurs', null, log.text.slice(0, 300));
+		},
+		onFrameBuffer: (buffer, frame) => {
+			rendered.set(frame, {hash: createHash('sha1').update(buffer).digest('hex'), grid: lumaGrid(buffer)});
+		},
+	}).catch((e) => add('erreurs', null, String(e.message ?? e).slice(0, 300)));
+	process.stdout.write('\n');
+
 	const hashes = [];
 	const trajectoires = {};
 	const activite = [];
@@ -63,27 +89,15 @@ for (const format of formats) {
 	let lastIssues = new Map();
 	let measured = 0;
 	for (const frame of frames) {
-		const reports = [];
-		const {buffer} = await renderStill({
-			serveUrl, composition, frame, output: null, imageFormat: 'jpeg', jpegQuality: 80, browserExecutable, logLevel: 'error',
-			envVariables: {REMOTION_QA: '1'},
-			onBrowserLog: (log) => {
-				if (log.text.startsWith('QA:')) reports.push(JSON.parse(log.text.slice(3)));
-				else if (log.type === 'error') add('erreurs', frame, log.text.slice(0, 300));
-			},
-		}).catch((e) => {
-			add('erreurs', frame, String(e.message ?? e).slice(0, 300));
-			return {buffer: null};
-		});
-		hashes.push({frame, hash: buffer ? createHash('sha1').update(buffer).digest('hex') : null});
+		const image = rendered.get(frame);
+		hashes.push({frame, hash: image?.hash ?? null});
 		// Un même défaut présent sur plusieurs frames consécutives compte une seule fois.
-		const report = reports.filter((r) => r.frame === frame).at(-1);
+		const report = reports.get(frame);
 		if (report?.measured) measured++;
 		for (const [name, [x, y, o, flou]] of Object.entries(report?.motion ?? {})) (trajectoires[name] ??= []).push([frame, x, y, o, flou]);
-		if (buffer) {
-			const grid = lumaGrid(buffer);
-			activite.push([frame, prevGrid ? +activity(prevGrid, grid, frame - prevFrame).toFixed(2) : SEUIL_ACTIVITE]);
-			prevGrid = grid;
+		if (image) {
+			activite.push([frame, prevGrid ? +activity(prevGrid, image.grid, frame - prevFrame).toFixed(2) : SEUIL_ACTIVITE]);
+			prevGrid = image.grid;
 			prevFrame = frame;
 		}
 		const current = new Map();
@@ -93,9 +107,7 @@ for (const format of formats) {
 			if (!lastIssues.has(key)) add(issue.type, frame, issue.detail);
 		}
 		lastIssues = current;
-		process.stdout.write(`\r${id} : frame ${frame}/${n - 1}`);
 	}
-	process.stdout.write('\n');
 	// Garde-fou : un capteur qui n'a rien mesuré ne doit jamais afficher « zéro défaut ».
 	if (measured < frames.length) add('erreurs', null, `Capteur QA : ${frames.length - measured} frame(s) non mesurée(s) sur ${frames.length}. Vérifier que le film passe par withQA (src/Root.tsx).`);
 

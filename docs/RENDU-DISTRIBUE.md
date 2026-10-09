@@ -1,7 +1,7 @@
 # Rendre ailleurs que sur son ordinateur
 
 Un film de 15 s se rend en 1 à 2 min par format sur un portable récent ; la validation finale (`npm run qa`, chaque frame)
-prend 10 à 25 min par format. Au-delà de quelques films par semaine, ou pour des films de 30 à 60 s, déporter le rendu.
+prend environ 1 min par format (mesuré sur 2 cœurs : 50 s pour 420 frames en 1:1). Au-delà de quelques films par semaine, ou pour des films de 30 à 60 s, déporter le rendu.
 
 ## Option 1 : serveur Hetzner + Docker (recommandé, infra existante)
 Le `Dockerfile` du dépôt fige navigateur, polices et ffmpeg : le rendu est identique d'une machine à l'autre

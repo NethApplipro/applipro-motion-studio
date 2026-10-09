@@ -1,18 +1,65 @@
+# Qualité motion. Ne contrôle que les films touchés par la PR (scripts/ci-plan.mjs), à deux niveaux :
+#   PR en brouillon        → contrôle léger : précontrôle (une image sur cinq), sans rendu MP4
+#   PR prête ou lancement manuel → validation complète : rendu, QA finale image par image, déterminisme, verdict
+# Une modification de code partagé (briques, capteurs, charte, scripts) relance tous les films ; la doc seule, aucun.
 name: Qualité motion
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: motion-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  validate:
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      has_films: ${{ steps.plan.outputs.has_films }}
+      visual: ${{ steps.plan.outputs.visual }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          DRAFT: ${{ github.event.pull_request.draft }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then MODE=complet; RANGE=""; else RANGE="$BASE HEAD"; if [ "$DRAFT" = "true" ]; then MODE=leger; else MODE=complet; fi; fi
+          PLAN=$(node scripts/ci-plan.mjs $RANGE --mode=$MODE)
+          echo "$PLAN"
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "matrix=$(echo "$PLAN" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.stringify({include:JSON.parse(s).matrix})))')" >> "$GITHUB_OUTPUT"
+          echo "has_films=$(echo "$PLAN" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).matrix.length>0))')" >> "$GITHUB_OUTPUT"
+          echo "visual=$(echo "$PLAN" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).visual))')" >> "$GITHUB_OUTPUT"
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+  validate:
+    needs: plan
+    if: needs.plan.outputs.has_films == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
-      matrix:
-        film: [PremierJour, CoffreFort]
-        format: [9x16, 1x1, 16x9]
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,23 +69,36 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npm ci
       - run: npm run setup
-      - run: npm test
       - run: npm run check
-      - run: npm run render -- ${{ matrix.film }} ${{ matrix.format }}
-      - run: npm run qa -- ${{ matrix.film }} ${{ matrix.format }}
-      - run: npm run determinism -- ${{ matrix.film }}-${{ matrix.format }}
+      - name: Contrôle léger (précontrôle, sans MP4)
+        if: needs.plan.outputs.mode == 'leger'
+        run: npm run qa -- ${{ matrix.film }} ${{ matrix.format }} --preflight
+      - name: Rendu
+        if: needs.plan.outputs.mode == 'complet'
+        run: npm run render -- ${{ matrix.film }} ${{ matrix.format }}
+      - name: Validation finale
+        if: needs.plan.outputs.mode == 'complet'
+        run: npm run qa -- ${{ matrix.film }} ${{ matrix.format }}
+      - name: Déterminisme
+        if: needs.plan.outputs.mode == 'complet'
+        run: npm run determinism -- ${{ matrix.film }}-${{ matrix.format }}
       # Verdict calculé : QA finale de ce format + critique committée (review.json) selon la cible du film.
-      - run: npm run verdict -- ${{ matrix.film }} ${{ matrix.format }}
+      - name: Verdict
+        if: needs.plan.outputs.mode == 'complet'
+        run: npm run verdict -- ${{ matrix.film }} ${{ matrix.format }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ matrix.film }}-${{ matrix.format }}
           path: |
             out/${{ matrix.film }}-${{ matrix.format }}.mp4
-            reviews/${{ matrix.film }}-${{ matrix.format }}/qa.*
-            reviews/${{ matrix.film }}-${{ matrix.format }}/review.md
+            reviews/${{ matrix.film }}-${{ matrix.format }}/*.md
+            reviews/${{ matrix.film }}-${{ matrix.format }}/*.json
+          if-no-files-found: ignore
           retention-days: 7
   visual:
+    needs: plan
+    if: needs.plan.outputs.visual == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

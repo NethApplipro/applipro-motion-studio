@@ -39,6 +39,9 @@ Script de setup : `npm ci && npm run setup`. Ajouter `apt-get install -y ffmpeg`
 ffmpeg embarqué par Remotion rend et normalise le son, mais ne génère pas les planches). Si le téléchargement du
 navigateur est bloqué, définir `REMOTION_BROWSER` (ou `CHROME_PATH`) vers un Chrome/Chromium local.
 Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder les images produites.
+CI (`.github/workflows/motion-quality.yml`) : seuls les films touchés par la PR sont contrôlés (`scripts/ci-plan.mjs` ;
+le code partagé relance tous les films, la doc seule aucun). PR en brouillon → précontrôle ; PR prête ou lancement
+manuel → rendu, QA finale, déterminisme et verdict. `npm run qa` rend plusieurs images en parallèle (`--jobs=N`).
 
 ## Organisation
 | Chemin | Rôle |

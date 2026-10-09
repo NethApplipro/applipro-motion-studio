@@ -1,10 +1,11 @@
 // Pure validation helpers shared by the CLI and regression tests.
 export function qaOptions(flags, formats) {
-	for (const key of Object.keys(flags)) if (!['step', 'preflight', 'loop'].includes(key)) throw new Error(`Option QA inconnue : --${key}`);
+	for (const key of Object.keys(flags)) if (!['step', 'preflight', 'loop', 'jobs'].includes(key)) throw new Error(`Option QA inconnue : --${key}`);
 	for (const key of ['preflight', 'loop']) if (flags[key] !== undefined && flags[key] !== true) throw new Error(`--${key} ne prend pas de valeur.`);
 	const preflight = flags.preflight === true;
 	const step = Number(flags.step ?? (preflight ? 5 : 1));
 	if (!Number.isSafeInteger(step) || step < 1) throw new Error('--step doit être un entier positif.');
+	if (flags.jobs !== undefined && !(Number.isSafeInteger(Number(flags.jobs)) && Number(flags.jobs) >= 1 && Number(flags.jobs) <= 16)) throw new Error('--jobs doit être un entier de 1 à 16.');
 	if (!preflight && step !== 1) throw new Error('La validation finale contrôle chaque frame. Utiliser --preflight pour échantillonner.');
 	if (formats.some((f) => !['9x16', '1x1', '16x9'].includes(f))) throw new Error('Format inconnu : choisir 9x16, 1x1 ou 16x9.');
 	return {preflight, step};
