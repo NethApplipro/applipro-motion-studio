@@ -11,6 +11,7 @@ caméra, transitions, son) et les interdits, déjà traduits dans la charte Appl
 | [`scene-produit-sombre`](scene-produit-sombre.md) | Grande scène sombre arrondie au centre, ambiance de marque autour | Lancement premium, salon, keynote | moyen |
 | [`lancement-tech`](lancement-tech.md) | Chaque transition démontre une fonction : flux, branches, données en mouvement | Copilote IA, intégrations SIRH, API | rapide |
 | [`camera-continue`](camera-continue.md) | Un seul plan-séquence lent sur un bureau ou un écran, sans coupe | Back-office RH, démo longue, site web | lent (mouvements de 1,5 à 3 s) |
+| [`recit-cinetique`](recit-cinetique.md) | Deux actes de couleur (problème sombre / solution claire), phrases mot par mot, mots géants, profondeur, démo qui se construit | Film de présentation 30–60 s, site, salon | rapide (événement / s) |
 | [`affiche-cinetique`](affiche-cinetique.md) | Typographie géante qui claque sur le temps, slogans, aucun écran | Accroche réseaux, annonce, recrutement | très rapide |
 
 ## Comment s'en servir
