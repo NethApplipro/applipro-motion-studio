@@ -9,6 +9,8 @@ import brand from '../../brand/brand.json';
 // Marquer les textes importants dans les films :
 //   data-qa="caption"  → sous-titre / titre (taille mini 58 px en 1080, zone sûre obligatoire)
 //   data-qa="text"     → autre texte qui doit être lu (taille mini 30 px en 1080, zone sûre obligatoire)
+//   data-qa="ui"       → texte d'un écran d'app qui porte un fait du brief (état, consigne) : mini 24 px en 1080,
+//                        dans le cadre ; la zone sûre ne s'applique pas (l'écran est un décor qui peut déborder)
 //   data-motion="nom"  → élément dont la trajectoire est suivie (sauts, arrêts brusques). Les textes data-qa sont
 //                        suivis automatiquement. Un nom par élément : « telephone », « carte-2 »…
 
@@ -89,12 +91,13 @@ export const QAProbe: React.FC<{children: React.ReactNode}> = ({children}) => {
 				);
 				lines.forEach((q) => texts.push({el, r: q}));
 				const px = (v: number) => `${Math.round(v)} px`;
+				const kind = el.getAttribute('data-qa');
 				if (r.left < -1 || r.top < -1 || r.right > width + 1 || r.bottom > height + 1) {
 					issues.push({type: 'texteHorsCadre', detail: `${describe(el)} sort du cadre (x ${px(r.left)}→${px(r.right)}, y ${px(r.top)}→${px(r.bottom)}, cadre ${width}×${height}).`});
-				} else if (r.left < safe.l - 1 || r.top < safe.t - 1 || r.right > safe.r + 1 || r.bottom > safe.b + 1) {
+				} else if (kind !== 'ui' && r.left < safe.l - 1 || r.top < safe.t - 1 || r.right > safe.r + 1 || r.bottom > safe.b + 1) {
 					issues.push({type: 'texteHorsZoneSure', detail: `${describe(el)} déborde de la zone sûre (texte y ${px(r.top)}→${px(r.bottom)}, x ${px(r.left)}→${px(r.right)} ; zone y ${px(safe.t)}→${px(safe.b)}, x ${px(safe.l)}→${px(safe.r)}).`});
 				}
-				const min = (el.getAttribute('data-qa') === 'caption' ? 58 : 30) * u;
+				const min = (kind === 'caption' ? 58 : kind === 'ui' ? 24 : 30) * u;
 				if (size < min - 0.5) issues.push({type: 'texteTropPetit', detail: `${describe(el)} fait ${size.toFixed(1)} px, minimum ${min.toFixed(0)} px.`});
 			});
 			for (let i = 0; i < texts.length; i++) {

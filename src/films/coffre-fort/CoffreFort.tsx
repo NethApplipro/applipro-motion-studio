@@ -14,17 +14,16 @@ import {DURATION, SFX, T} from './timeline';
 // Toutes les mesures de la scène sont en unités de scène (1 unité = 1 px en 1:1), converties par S.
 
 // Mise en page recomposée par format : scène (centre, échelle) et sous-titres.
-const LAYOUT: Record<FormatKind, {stage: {cx: number; cy: number; scale: number}; cap: {x: number; y: number; w: number; size: number; align: 'left' | 'center'}; close: {w: number; h: number}}> = {
-	square: {stage: {cx: 540, cy: 610, scale: 1}, cap: {x: 80, y: 90, w: 920, size: 58, align: 'left'}, close: {w: 900, h: 600}},
-	vertical: {stage: {cx: 540, cy: 1010, scale: 1.3}, cap: {x: 90, y: 250, w: 820, size: 76, align: 'left'}, close: {w: 760, h: 760}},
-	landscape: {stage: {cx: 1280, cy: 560, scale: 1.25}, cap: {x: 120, y: 400, w: 560, size: 74, align: 'left'}, close: {w: 980, h: 640}},
+const LAYOUT: Record<FormatKind, {stage: {cx: number; cy: number; scale: number}; cap: {x: number; y: number; w: number; size: number; align: 'left' | 'center'}; close: {w: number; h: number}; row: number}> = {
+	square: {stage: {cx: 540, cy: 610, scale: 1}, cap: {x: 80, y: 90, w: 920, size: 58, align: 'left'}, close: {w: 900, h: 600}, row: 860},
+	vertical: {stage: {cx: 540, cy: 1010, scale: 1.3}, cap: {x: 90, y: 250, w: 820, size: 76, align: 'left'}, close: {w: 760, h: 760}, row: 800},
+	landscape: {stage: {cx: 1280, cy: 560, scale: 1.25}, cap: {x: 120, y: 400, w: 560, size: 74, align: 'left'}, close: {w: 980, h: 640}, row: 860},
 };
 
 // États de la forme (unités de scène, centre de la scène = 0,0).
 const TILE: ShapeState = {x: 0, y: 0, w: 300, h: 300, r: 44};
 const PANEL: ShapeState = {x: 0, y: 0, w: 640, h: 560, r: 36};
 const DROP: ShapeState = {x: 0, y: -20, w: 680, h: 380, r: 32};
-const ROW: ShapeState = {x: 0, y: 0, w: 760, h: 140, r: 26};
 
 const FOLDERS = ['Contrat', 'Fiche de paie', 'Mes Documents', 'Onboarding', 'Perso'];
 const rowTop = (i: number) => -280 + 104 + i * 80; // haut de la ligne i dans le panneau (unités de scène)
@@ -43,6 +42,7 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 	const Y = (v: number) => L.stage.cy * u + v * S;
 	const px = (v: number) => v * S;
 	const CLOSE: ShapeState = {x: 0, y: 0, w: L.close.w, h: L.close.h, r: 52};
+	const ROW: ShapeState = {x: 0, y: 0, w: L.row, h: 160, r: 28};
 
 	// --- La forme ---------------------------------------------------------------------------
 	const shape = shapeAt(frame, fps, TILE, [
@@ -50,7 +50,8 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 		{at: T.toDrop, to: DROP},
 		{at: T.toRow, to: ROW},
 		{at: T.toClose, to: CLOSE, preset: 'heavy'},
-		{at: T.toTile, to: TILE},
+		// Retour en snappy : la forme doit être au repos à la dernière frame pour que la boucle soit exacte.
+		{at: T.toTile, to: TILE, preset: 'snappy'},
 	], p.ressort);
 	const s = {x: X(shape.x), y: Y(shape.y), w: px(shape.w), h: px(shape.h), r: px(shape.r)};
 
@@ -64,15 +65,20 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 		{at: T.cursorToChip, x: CHIP.x - 60, y: CHIP.y + 10},
 		{at: T.drag, x: 20, y: 30, preset: 'heavy'},
 		{at: T.cursorAway, x: 440, y: 420},
-		{at: T.cursorHome, x: HOME.x, y: HOME.y},
+		// Le curseur vient se poser près de l'état, puis s'écarte de la carte de clôture.
+		{at: T.cursorToStatus, x: L.row / 2 - 60, y: 110},
+		{at: T.cursorRest, x: 320, y: L.close.h / 2 + 60},
+		{at: T.cursorHome, x: HOME.x, y: HOME.y, preset: 'snappy'},
 	], [T.clickTile, T.clickPaie, T.clickContrat, T.grab, T.drop]);
 
 	// --- Contenus échangés dans la forme ---------------------------------------------------------
-	const tileC = swap(frame, fps, -30, T.toPanel - 2);
-	const tileBack = swap(frame, fps, T.toTile + 6);
-	const panelC = swap(frame, fps, T.toPanel + 6, T.toDrop - 2);
-	const dropC = swap(frame, fps, T.toDrop + 6, T.toRow - 2);
-	const rowC = swap(frame, fps, T.toRow + 6, T.toClose - 2);
+	// Échanges serrés : l'ancien contenu sort 1 frame après le changement de forme, le nouveau entre 2 frames plus tard
+	// (ni forme vide, ni double exposition).
+	const tileC = swap(frame, fps, -30, T.toPanel + 1);
+	const tileBack = swap(frame, fps, T.toTile);
+	const panelC = swap(frame, fps, T.toPanel + 3, T.toDrop + 1);
+	const dropC = swap(frame, fps, T.toDrop + 3, T.toRow + 1);
+	const rowC = swap(frame, fps, T.toRow + 3, T.toClose + 1);
 	const tilePress = Math.max(0, 1 - Math.abs(frame - T.clickTile - 3) / 6);
 
 	// Sélection de dossier : deux bords, le bord avant mène (splitSpring).
@@ -97,7 +103,8 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 	const closeIn = sp(frame, fps, T.toClose + 4, 'heavy') - sp(frame, fps, T.toTile - 4, 'snappy');
 	const line1 = swap(frame, fps, T.line1, T.toTile - 6);
 	const line2 = swap(frame, fps, T.line2, T.toTile - 6);
-	const logoDraw = ease(frame, [T.logo, T.logo + 22]) * (1 - sp(frame, fps, T.toTile - 6, 'snappy'));
+	const logoDraw = ease(frame, [T.logo, T.logo + 22]);
+	const logoOut = sp(frame, fps, T.toTile - 6, 'snappy');
 	const logoWord = ease(frame, [T.logo + 10, T.logo + 26]);
 	const urlC = swap(frame, fps, T.url, T.toTile - 6);
 	const closeSize = (base: number, min: number) => Math.max(px(base), min * u);
@@ -160,7 +167,7 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 							<div style={{position: 'absolute', inset: px(22), borderRadius: px(20), border: `${Math.max(1.5, px(3))}px dashed ${over ? C.blue : C.grey20}`, background: over ? C.blue05 : 'transparent'}} />
 							<div style={{position: 'absolute', left: 0, right: 0, top: px(78), display: 'flex', justifyContent: 'center', color: C.blue}}><Icon name="upload" size={px(64)} /></div>
 							<div style={{position: 'absolute', left: px(40), right: px(40), top: px(168), textAlign: 'center', fontSize: px(26), fontWeight: 500, color: C.black}}>Déposer un fichier ou cliquer pour parcourir</div>
-							<div style={{position: 'absolute', left: px(40), right: px(40), top: px(214), textAlign: 'center', fontSize: px(19), color: C.grey60}}>PDF, Word, Excel, PowerPoint ou image (max. 5 Mo)</div>
+							<div data-qa="ui" style={{position: 'absolute', left: px(30), right: px(30), top: px(212), textAlign: 'center', fontSize: Math.max(px(24), 24 * u), color: C.grey60}}>PDF, Word, Excel, PowerPoint ou image (max. 5 Mo)</div>
 							<div style={{position: 'absolute', left: px(120), right: px(120), top: px(282), height: px(10), borderRadius: px(10), background: C.blue05, overflow: 'hidden', opacity: frame >= T.drop ? 1 : 0}}>
 								<div style={{width: `${progress * 100}%`, height: '100%', background: C.blue, borderRadius: px(10)}} />
 							</div>
@@ -174,11 +181,11 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 							<div style={{width: px(68), height: px(68), borderRadius: px(16), background: C.blue05, color: C.blue, display: 'grid', placeItems: 'center'}}><Icon name="pdf" size={px(34)} /></div>
 							<div style={{flex: 1}}>
 								<div style={{fontSize: px(28), fontWeight: 600, color: C.black}}>{p.fichier}</div>
-								<div style={{fontSize: px(20), color: C.grey60, marginTop: px(4)}}>Partagé à {p.destinataire}</div>
+								<div data-qa="ui" style={{fontSize: Math.max(px(26), 24 * u), color: C.grey60, marginTop: px(4)}}>Partagé à {p.destinataire}</div>
 							</div>
-							<div style={{position: 'relative', height: px(48), width: px(300)}}>
-								<div style={{position: 'absolute', right: 0, top: 0, height: px(48), display: 'flex', alignItems: 'center', padding: `0 ${px(18)}px`, borderRadius: px(99), background: C.grey05, color: C.grey60, fontSize: px(19), fontWeight: 500, whiteSpace: 'nowrap', opacity: 1 - signed, transform: `translateY(${-signed * px(14)}px)`}}>En attente de signature</div>
-								<div style={{position: 'absolute', right: 0, top: 0, height: px(48), display: 'flex', alignItems: 'center', gap: px(6), padding: `0 ${px(18)}px`, borderRadius: px(99), background: C.green20, color: C.green, fontSize: px(21), fontWeight: 600, opacity: signed, transform: `translateY(${(1 - signed) * px(14)}px) scale(${0.9 + 0.1 * signed})`}}><Icon name="check" size={px(24)} />Signé</div>
+							<div style={{position: 'relative', height: px(58), width: px(380)}}>
+								<div style={{position: 'absolute', right: 0, top: 0, height: px(58), display: 'flex', alignItems: 'center', padding: `0 ${px(20)}px`, borderRadius: px(99), background: C.grey05, color: C.grey60, fontSize: Math.max(px(26), 24 * u), fontWeight: 500, whiteSpace: 'nowrap', opacity: 1 - signed, transform: `translateY(${-signed * px(14)}px)`}}>En attente de signature</div>
+								<div style={{position: 'absolute', right: 0, top: 0, height: px(58), display: 'flex', alignItems: 'center', gap: px(8), padding: `0 ${px(22)}px`, borderRadius: px(99), background: C.green20, color: C.green, fontSize: px(30), fontWeight: 600, opacity: signed, transform: `translateY(${(1 - signed) * px(14)}px) scale(${0.9 + 0.1 * signed})`}}><Icon name="check" size={px(30)} />Signé</div>
 							</div>
 						</div>
 					))
@@ -186,12 +193,12 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 
 				{closeIn > 0.001 ? (
 					<div style={{position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: px(kind === 'vertical' ? 90 : 56), color: '#FFFFFF', textAlign: 'center'}}>
-						<div style={{fontSize: closeSize(66, 58), fontWeight: 600, letterSpacing: -px(2.5), lineHeight: 1.12}}>
-							<div data-qa="caption" style={{opacity: line1.opacity * 0.75, transform: line1.transform, filter: line1.filter}}>{p.signature[0]}</div>
+						<div style={{fontSize: closeSize(kind === 'vertical' ? 54 : 66, 58), fontWeight: 600, letterSpacing: -px(2.5), lineHeight: 1.12}}>
+							<div data-qa="caption" style={{opacity: line1.opacity, transform: line1.transform, filter: line1.filter}}>{p.signature[0]}</div>
 							<div data-qa="caption" style={{opacity: line2.opacity, transform: line2.transform, filter: line2.filter}}>{p.signature[1]}</div>
 						</div>
 						<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(18)}}>
-							<div style={{opacity: logoDraw > 0 ? 1 : 0}}><Logo size={px(70)} draw={logoDraw} word={logoWord} /></div>
+							<div style={{opacity: logoDraw > 0 ? 1 - logoOut : 0, filter: `blur(${logoOut * 6}px)`}}><Logo size={px(70)} draw={logoDraw} word={logoWord} /></div>
 							<div data-qa="text" style={{fontSize: closeSize(30, 30), fontWeight: 500, opacity: urlC.opacity * 0.85, transform: urlC.transform}}>{BRAND.url}</div>
 						</div>
 					</div>
@@ -206,7 +213,10 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 				</div>
 			) : null}
 
-			<Cursor x={X(cur.x)} y={Y(cur.y)} press={cur.press} size={px(46)} color={C.black} outline="#FFFFFF" ring={C.blue} />
+			{/* Le curseur s'efface pendant la clôture (aucun geste à faire) et revient pour la boucle. */}
+			<div style={{opacity: 1 - sp(frame, fps, T.cursorRest + 8, 'snappy') + sp(frame, fps, T.toTile - 10, 'snappy')}}>
+				<Cursor x={X(cur.x)} y={Y(cur.y)} press={cur.press} size={px(46)} color={C.black} outline="#FFFFFF" ring={C.blue} />
+			</div>
 
 			{p.musique ? <Audio src={staticFile('audio/bed.wav')} volume={(f) => interpolate(f, [0, 6, DURATION - 20, DURATION], [0, 0.5, 0.5, 0], {extrapolateRight: "clamp"})} /> : null}
 			{SFX.map((sfx, i) => (

@@ -27,16 +27,18 @@ export const T = {
 	// 7,5–10 s : la ligne du fichier et son état
 	toRow: beat(15),
 	cursorAway: beat(15) + 4,
+	cursorToStatus: beat(16) + 8,
+	cursorRest: beat(20),
 	signed: beat(18),
 	// 10–13 s : clôture
 	toClose: beat(20),
 	line1: beat(21),
-	line2: beat(22),
-	logo: beat(23),
-	url: beat(24),
+	line2: beat(21) + 8,
+	logo: beat(22) - 5,
+	url: beat(22) + 5,
 	// 13–14 s : retour à la tuile (boucle)
-	toTile: beat(25) + 7,
-	cursorHome: beat(25) + 7,
+	toTile: beat(26) + 5,
+	cursorHome: beat(26) + 5,
 	// Sous-titres (hors de la forme)
 	caps: [0, beat(6), beat(11), beat(15)],
 	capsOut: [beat(5) + 7, beat(10) + 7, beat(14) + 7, beat(19) + 7],

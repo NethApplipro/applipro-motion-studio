@@ -99,8 +99,9 @@ nombre exact de frames) · loudness.
   Contrôlé seulement sur des frames consécutives (validation finale, ou `--preflight --step=1`).
 - Marquer les éléments clés `data-motion="nom"` (téléphone, cartes, forme, curseur) ; les textes `data-qa` sont suivis d'office.
 - Les mesures viennent de `src/components/QAProbe.tsx`, qui enveloppe chaque film (sans effet sur l'image).
-- **Marquer les textes qui doivent être lus** : `data-qa="caption"` (sous-titres, titres : ≥ 58 px en 1080) ou
-  `data-qa="text"` (autres textes importants : ≥ 30 px). Les textes décoratifs et ceux des écrans d'app ne sont pas marqués.
+- **Marquer les textes qui doivent être lus** : `data-qa="caption"` (sous-titres, titres : ≥ 58 px en 1080),
+  `data-qa="text"` (autres textes importants : ≥ 30 px) ou `data-qa="ui"` (texte d'écran d'app qui porte un fait du
+  brief, un état ou une consigne : ≥ 24 px, sans contrainte de zone sûre). Les textes purement décoratifs ne sont pas marqués.
 - Zone sûre : 9:16 → 220 px en haut, 420 px en bas, 150 px à droite (interface TikTok/Reels/Shorts), 60 px à gauche ;
   autres formats → 4 % de chaque côté.
 - Chaque défaut du rapport donne la frame, la preuve et la consigne de correction.
