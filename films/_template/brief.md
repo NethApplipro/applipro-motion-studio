@@ -9,6 +9,7 @@ Public : (ex. DRH d'entreprises de 200 à 5 000 salariés)
 Formats : 9:16 · 1:1 · 16:9
 Durée : 15 s
 Usage : (LinkedIn, salon, site…)
+Cible : public | interne   (public = réseaux, site, salon : exige LIVRABLE sur chaque format)
 CTA : applipro.fr
 Écrans réels à utiliser (references/applipro-ui/) :
 </inputs>

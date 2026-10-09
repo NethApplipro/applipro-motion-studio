@@ -8,6 +8,7 @@
 | **Durée** | 15 s (450 frames à 30 fps) |
 | **Formats** | 9:16, 1:1 et 16:9 recomposés |
 | **CTA** | applipro.fr |
+| **Cible** | interne (pilote) : passer à « public » exige LIVRABLE sur les 3 formats |
 
 ## Faits produit (sources : script Demo Night French Tech, captures de l'app, DA)
 - App mobile en marque blanche qui connecte le salarié à son entreprise, ses RH, ses documents et ses parcours, dès avant le premier jour.

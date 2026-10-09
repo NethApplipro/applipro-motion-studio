@@ -5,7 +5,8 @@ le programme dessine chaque image, le moteur de rendu en fait un MP4, la boucle 
 Ce fichier est la source unique des règles. `CLAUDE.md` l'importe.
 
 ## Pour toute demande de vidéo
-Lire et suivre **`.agents/skills/motion-reel/SKILL.md`** (pipeline en 9 étapes avec validations).
+Lire et suivre **`.agents/skills/motion-reel/SKILL.md`** (pipeline en 9 étapes avec validations, ou **mode express**
+pour un post rapide : moins de gates, mêmes contrôles).
 Avant de proposer une direction artistique, lire **`references/styles/README.md`** (bibliothèque de styles nommés).
 Un brief faible se renforce avec **`docs/BRIEFER.md`**.
 
@@ -19,7 +20,13 @@ npm run new-film -- <slug> "Titre"  # crée films/<slug>/ + src/films/<slug>/ et
 npm run stills -- <Film> <format> [frames…]   # images de contrôle → reviews/<Film>/<format>/
 npm run render -- <Film> [formats…] [--draft] # MP4 → out/ (H.264 CRF 16, son à -14 LUFS)
 npm run qa -- <Film> [formats…] [--loop]  # capteurs automatiques, doivent tous être à 0
-npm run critic -- out/<Film>-<format>.mp4     # planches + loudness → reviews/<id>/
+npm run critic -- out/<Film>-<format>.mp4     # planches, traînées (motion.jpg), courbes (activite.svg, vitesses.svg)
+npm run verdict -- <Film> [formats…]          # verdict CALCULÉ depuis qa.json + review.json, régénère review.md
+npm run review-page -- <Film> [--import=f]    # page de relecture humaine (formats côte à côte, commentaires horodatés)
+npm run visual [-- --update]                  # tests visuels de régression (tests/visual/baseline/)
+npm run beats -- <musique>                    # grille des temps d'une musique sous licence → <musique>.beats.json
+npm run voice -- <slug> [--essai]             # voix off ElevenLabs + minutage mot à mot (films/<slug>/voix.json)
+npm run eval -- <slug>                        # contrôles automatiques du pipeline (évals du skill, evals/)
 npm run determinism -- <Film>-<format> [frame]
 npm run ref -- <vidéo|image> [nom]  # prépare l'analyse d'une référence → references/inbox/<nom>/
 npm run sfx                         # régénère les sons de synthèse
@@ -32,6 +39,11 @@ Script de setup : `npm ci && npm run setup`. Ajouter `apt-get install -y ffmpeg`
 ffmpeg embarqué par Remotion rend et normalise le son, mais ne génère pas les planches). Si le téléchargement du
 navigateur est bloqué, définir `REMOTION_BROWSER` (ou `CHROME_PATH`) vers un Chrome/Chromium local.
 Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder les images produites.
+CI (`.github/workflows/motion-quality.yml`) : seuls les films touchés par la PR sont contrôlés (`scripts/ci-plan.mjs` ;
+le code partagé relance tous les films, la doc seule aucun). PR en brouillon → précontrôle ; PR prête ou lancement
+manuel → rendu, QA finale, déterminisme et verdict. `npm run qa` rend plusieurs images en parallèle (`--jobs=N`).
+Références des tests visuels : toujours rendues par la CI (`.github/workflows/visual-references.yml`, lancement manuel ou
+commit contenant `[maj-references-visuelles]`), jamais depuis un autre navigateur ; regarder ce qui change avant d'accepter.
 
 ## Organisation
 | Chemin | Rôle |
@@ -45,8 +57,15 @@ Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder le
 | `films/<film>/` | `brief.md`, `style-guide.md`, `shotlist.md` : écrits et validés AVANT le code. |
 | `src/films/<film>/` | `timeline.ts` (toutes les frames et les sons), `schema.ts` (réglages zod), composition. |
 | `src/films/registry.ts` | Registre des films (mis à jour par `new-film`). |
-| `src/components/` | Téléphone, tap, sous-titres, logo, cartes, écrans de l'app (`app/`). |
-| `src/lib/` | `motion.ts` (sp, track, presets, mulberry32, BEAT), `format.ts` (useFormat), `brand.ts`, `fonts.ts`. |
+| `src/components/` | Téléphone, tap, sous-titres, logo, cartes, voix off (`Voice.tsx`), écrans de l'app (`app/`). |
+| `src/components/app/catalog.ts` | Catalogue des écrans redessinés : capture d'origine + états animables. Tout écran montré y figure. |
+| `src/components/style/` | Briques des styles : `Morph.tsx` (forme, curseur, indicateur à deux bords), `Kinetic.tsx` (mot à mot, mot qui claque), `Camera.tsx` (plan-séquence, fenêtre), `MotionBlur.tsx` (flou de mouvement). |
+| `src/studio/` | Compositions de référence du dossier « Studio » : `Ecrans` (catalogue) et `Briques` (démonstration des briques). |
+| `tests/visual/baseline/` | Images de référence des tests visuels (cibles dans `scripts/visual-targets.mjs`). |
+| `public/audio/LICENCES.md` | Origine et droits de chaque son ; obligatoire avant une diffusion publique. |
+| `evals/` | Briefs d'évaluation du skill et journal des résultats. |
+| `docs/RENDU-DISTRIBUE.md`, `Dockerfile` | Rendre sur un serveur (Hetzner/Coolify) ou sur AWS Lambda. |
+| `src/lib/` | `motion.ts` (sp, track, presets, mulberry32, BEAT), `music.ts` (musicBeat), `format.ts` (useFormat), `brand.ts`, `fonts.ts`. |
 | `scripts/` | Outils en Node, multiplateformes. `lib.mjs` = navigateur, ffmpeg, bundle. |
 | `reviews/` | `CRITIC.md` (grille), `JOURNAL.md` (mémoire des défauts), `qa.md` et `review.md` par rendu. Les images générées ne sont pas versionnées. |
 | `src/components/QAProbe.tsx` | Capteur QA (mesures dans le navigateur pendant `npm run qa`). |
@@ -58,6 +77,11 @@ Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder le
 - Polices et sons servis depuis `public/`. Aucun appel réseau pendant le rendu.
 - Les 3 formats sont **recomposés** via `useFormat()` (table `LAYOUT` par format), jamais recadrés.
 - Toute la chronologie d'un film vit dans `timeline.ts`, calée sur 120 BPM (1 temps = 15 frames à 30 fps) : l'image et le son bougent ensemble.
+  Avec une musique sous licence : `npm run beats`, puis `musicBeat(grille, n)` au lieu de `beat(n)`.
+- Déplacement de plus d'un quart du cadre en une frame : `<MotionBlur render={(f) => …}>`, positions calculées depuis `f`.
+- Un nouvel écran se dessine d'après sa capture et s'ajoute au catalogue (`src/components/app/catalog.ts`) avant d'être filmé.
+- Un nouveau film s'ajoute aux tests visuels (`scripts/visual-targets.mjs`, 3 à 5 frames) ; un changement visuel voulu se
+  valide en regardant `tests/visual/diff/`, puis `npm run visual -- --update`.
 - Ne jamais mettre `will-change` sur un élément que la caméra agrandit (texte flou).
 
 ## Règles de style
@@ -72,25 +96,44 @@ Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder le
 Un film ne sort que si **tous les compteurs de la validation finale sont à zéro** (`reviews/<Film>-<format>/qa.md`, code de sortie 1 sinon ;
 le précontrôle `--preflight` écrit `preflight.md` et ne valide jamais une livraison) :
 erreurs · texteHorsCadre · texteHorsZoneSure · texteTropPetit · chevauchement · couleurHorsCharte · tempsMort ·
-nonDeterministe · boucle (avec `--loop`) · fichierVideo (H.264, yuv420p bt709, AAC, 30 fps, nombre exact de frames) · loudness.
+densiteEvenements · saccade · nonDeterministe · boucle (avec `--loop`) · fichierVideo (H.264, yuv420p bt709, AAC, 30 fps,
+nombre exact de frames) · loudness.
+- `densiteEvenements` : plage où rien de visible ne change plus longtemps que `maxGapSeconds` (4 s par défaut,
+  réglable par film dans `films/<slug>/qa.json`, ex. 2 s pour morph-continu).
+- `saccade` : élément suivi qui saute (plus d'un quart du petit côté en une frame sans flou) ou s'arrête net.
+  Contrôlé seulement sur des frames consécutives (validation finale, ou `--preflight --step=1`).
+- Marquer les éléments clés `data-motion="nom"` (téléphone, cartes, forme, curseur) ; les textes `data-qa` sont suivis d'office.
 - Les mesures viennent de `src/components/QAProbe.tsx`, qui enveloppe chaque film (sans effet sur l'image).
-- **Marquer les textes qui doivent être lus** : `data-qa="caption"` (sous-titres, titres : ≥ 58 px en 1080) ou
-  `data-qa="text"` (autres textes importants : ≥ 30 px). Les textes décoratifs et ceux des écrans d'app ne sont pas marqués.
+- **Marquer les textes qui doivent être lus** : `data-qa="caption"` (sous-titres, titres : ≥ 58 px en 1080),
+  `data-qa="text"` (autres textes importants : ≥ 30 px) ou `data-qa="ui"` (texte d'écran d'app qui porte un fait du
+  brief, un état ou une consigne : ≥ 24 px, sans contrainte de zone sûre). Les textes purement décoratifs ne sont pas marqués.
 - Zone sûre : 9:16 → 220 px en haut, 420 px en bas, 150 px à droite (interface TikTok/Reels/Shorts), 60 px à gauche ;
   autres formats → 4 % de chaque côté.
 - Chaque défaut du rapport donne la frame, la preuve et la consigne de correction.
 
+## Verdict (calculé, jamais déclaré)
+`npm run verdict -- <Film>` lit `qa.json` (QA finale) et `review.json` (notes du critique) et décide :
+**LIVRABLE** (QA à zéro, moyenne ≥ 8, aucun critère < 7 : diffusion publique) · **PILOTE INTERNE** (QA à zéro,
+moyenne ≥ 7,5, aucun critère < 7 : usage interne seulement) · **À REPRENDRE**. La cible (`public` / `interne`) vient du
+brief. Cible `public` : chaque format visionné et LIVRABLE. `review.md` est généré : ne jamais l'écrire à la main.
+
 ## Boucle de correction (objectif + règle d'arrêt)
-Objectif : `npm run qa` (validation finale) à zéro sur les 3 formats **et** note `reviews/CRITIC.md` ≥ 8 (aucun critère < 7).
+Objectif : `npm run qa` (validation finale) à zéro sur les 3 formats **et** `npm run verdict` accepté pour la cible du brief.
 Pendant le travail, chaque tour utilise le précontrôle rapide : lire `preflight.md`, corriger **le défaut le plus grave**,
 relancer `npm run qa -- <Film> <format> --preflight`. Une fois à zéro : `npm run render`, puis `npm run qa -- <Film>` (toutes les frames, MP4).
 Arrêt : objectif atteint · 5 tours · ou un tour sans progrès (même défaut, même compteur) → s'arrêter et expliquer le blocage.
 Ne jamais déclarer réussi un contrôle qui n'a pas été exécuté. Un rendu n'est pas une validation.
 
-## Fabricant et vérificateur séparés
-Celui qui fabrique ne se note pas. Après chaque rendu, la critique est faite par un regard séparé :
-Claude Code → sous-agent `motion-critic` (`.claude/agents/motion-critic.md`, lecture seule) ;
-Codex ou autre agent → nouvelle session, ou passe dédiée, qui suit les mêmes consignes en lisant ce fichier.
+## Fabricant et vérificateur séparés (rôles des agents)
+Celui qui fabrique ne se note pas. Répartition recommandée :
+| Rôle | Agent | Comment |
+|---|---|---|
+| Fabriquer (brief → MP4) | Claude Code | skill `motion-reel`, regarde les stills et planches pour juger la composition |
+| Critiquer chaque rendu | sous-agent `motion-critic` | lecture seule, écrit `review.json`, puis `npm run verdict` |
+| Relire le code de chaque PR | Codex | workflow `.github/workflows/codex-review.yml` (secret `OPENAI_API_KEY`), consignes `.github/codex/prompts/review.md` |
+| Visionner et commenter | humain | `npm run review-page`, commentaires importés dans `review.json` |
+Les rôles s'inversent sans problème (Codex fabrique, Claude relit) : la règle est seulement que fabricant et
+vérificateur soient deux sessions distinctes.
 
 ## Journal (`reviews/JOURNAL.md`)
 Chaque défaut trouvé y est consigné (date, cause, correction du film, correction du studio).
@@ -99,14 +142,16 @@ Chaque défaut trouvé y est consigné (date, cause, correction du film, correct
 ## Boucle qualité (résumé)
 `stills` → regarder → corriger → `qa --preflight` (zéro) → `render --draft` → `critic` + note `CRITIC.md` → corriger les 3 pires défauts →
 re-rendre. Livrable si qa = 0 et moyenne ≥ 8 sans critère < 7. Consigner dans `reviews/<id>/review.md` et `JOURNAL.md`.
-Terminer par `npm test`, `npm run check`, `npm run render`, `npm run qa` (final) et `npm run determinism`.
+Terminer par `npm test`, `npm run check`, `npm run render`, `npm run qa` (final), `npm run determinism`, `npm run visual`
+et `npm run verdict`.
 
 ## Git
 Committer les sources, jamais `out/`. Messages de commit en français, au présent (« Ajouter le film coffre-fort »).
 
 ## Licence et secrets
 Remotion : licence gratuite tant qu'Applipro compte au plus 3 personnes (https://www.remotion.dev/docs/license).
-Clés API (ElevenLabs…) dans `.env`, jamais dans un prompt ni dans git.
+Clés API (ElevenLabs…) dans `.env`, jamais dans un prompt ni dans git. Musiques et voix : consigner l'origine et la
+licence dans `public/audio/LICENCES.md` avant toute diffusion publique.
 
 ## Précontrôle et validation finale
 `npm run qa -- <Film> --preflight [--step=N]` sert à corriger les compositions avant le MP4.

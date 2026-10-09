@@ -24,5 +24,6 @@ recherche ⌘K « salaire » → réponse du copilote → toast « Document dép
 Easing qui rebondit, particules, glow, dégradés sur l'UI, icônes de tailles différentes, temps morts, mise en page de template.
 
 ## Briques
-À créer : `MorphShape` (rect animé : x, y, w, h, radius, couleur via `track`), `Cursor` (position + clic), `SplitSpring`
-(indicateur à deux bords). Réutiliser `Tap`, `Icon`, `sp`, `track`.
+Disponibles dans `src/components/style/Morph.tsx` : `shapeAt` + `MorphShape` (forme x, y, w, h, arrondi par ressorts),
+`swap` (échange de contenu sortie-avant-entrée), `splitSpring` (indicateur à deux bords), `cursorAt` + `Cursor`
+(position, clics). Exemple complet : film `CoffreFort` (`src/films/coffre-fort/`). Démonstration : composition `Briques`.

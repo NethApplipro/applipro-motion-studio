@@ -63,6 +63,9 @@ export const listCompositions = async () => getCompositions(await getBundle(), {
 
 export const FORMATS = ['9x16', '1x1', '16x9'];
 
+/** PremierJour → premier-jour (dossier films/<slug>/ et src/films/<slug>/). */
+export const filmSlug = (film) => film.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+
 /** Lit `--cle=valeur` et les arguments positionnels. */
 export const parseArgs = (argv = process.argv.slice(2)) => {
 	const flags = {};

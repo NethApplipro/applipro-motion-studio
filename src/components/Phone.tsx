@@ -8,7 +8,7 @@ export const PHONE_H = 844;
 export const Phone: React.FC<{children: React.ReactNode; scale: number; style?: React.CSSProperties}> = ({children, scale, style}) => {
 	const bezel = 12;
 	return (
-		<div style={{position: 'absolute', width: PHONE_W + bezel * 2, height: PHONE_H + bezel * 2, marginLeft: -(PHONE_W / 2 + bezel), marginTop: -(PHONE_H / 2 + bezel), transformOrigin: 'center', ...style, transform: `${style?.transform ?? ''} scale(${scale})`}}>
+		<div data-motion="telephone" style={{position: 'absolute', width: PHONE_W + bezel * 2, height: PHONE_H + bezel * 2, marginLeft: -(PHONE_W / 2 + bezel), marginTop: -(PHONE_H / 2 + bezel), transformOrigin: 'center', ...style, transform: `${style?.transform ?? ''} scale(${scale})`}}>
 			<div style={{position: 'absolute', inset: 0, borderRadius: 58, background: C.black, boxShadow: '0 40px 80px -30px rgba(14,30,62,.45), 0 12px 30px -12px rgba(14,30,62,.3)'}} />
 			<div style={{position: 'absolute', inset: bezel, borderRadius: 46, overflow: 'hidden', background: 'white'}}>
 				{children}

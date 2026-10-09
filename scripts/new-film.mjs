@@ -87,7 +87,7 @@ const reg = 'src/films/registry.ts';
 let r = readFileSync(reg, 'utf8');
 r = r.replace(
 	"\n// Registre des films.",
-	`import {${Name}} from './${slug}/${Name}';\nimport {default${Name}, ${camel}Schema} from './${slug}/schema';\nimport {DURATION as ${Name}_DURATION, FPS as ${Name}_FPS} from './${slug}/timeline';\n\n// Registre des films.`,
+	`\nimport {${Name}} from './${slug}/${Name}';\nimport {default${Name}, ${camel}Schema} from './${slug}/schema';\nimport {DURATION as ${Name}_DURATION, FPS as ${Name}_FPS} from './${slug}/timeline';\n\n// Registre des films.`,
 );
 r = r.replace('\t// <new-film>', `\t{id: '${Name}', component: ${Name}, schema: ${camel}Schema, defaultProps: default${Name}, durationInFrames: ${Name}_DURATION, fps: ${Name}_FPS},\n\t// <new-film>`);
 writeFileSync(reg, r);

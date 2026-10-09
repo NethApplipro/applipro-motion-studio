@@ -3,6 +3,8 @@ import {Composition, Folder} from 'remotion';
 import './lib/fonts';
 import {FILMS} from './films/registry';
 import {withQA} from './components/QAProbe';
+import {Briques, BRIQUES_DURATION} from './studio/Briques';
+import {Ecrans, ECRANS_DURATION} from './studio/Ecrans';
 
 // Chaque film est enveloppé par le capteur QA (inactif hors `npm run qa`, sans effet sur l'image).
 const WRAPPED = FILMS.map((film) => ({...film, component: withQA(film.component)}));
@@ -33,5 +35,10 @@ export const Root: React.FC = () => (
 				))}
 			</Folder>
 		))}
+		{/* Planches de référence du studio (pas des films) : catalogue d'écrans et briques de style. */}
+		<Folder name="Studio">
+			<Composition id="Ecrans" component={Ecrans} durationInFrames={ECRANS_DURATION} fps={30} width={1920} height={1080} />
+			<Composition id="Briques" component={Briques} durationInFrames={BRIQUES_DURATION} fps={30} width={1080} height={1080} />
+		</Folder>
 	</>
 );

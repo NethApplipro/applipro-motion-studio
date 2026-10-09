@@ -21,5 +21,5 @@ téléphone du salarié qui reçoit la tâche (`FO_50`).
 Coupes franches, mouvements secs, zooms rapides.
 
 ## Briques
-À créer : `Camera` (transform global piloté par `track` avec preset `heavy`), `Window` (fenêtre type macOS), flou de mouvement
-par sous-images (rendu à 4 sous-images mélangées, cf. `../sources.md`).
+Disponibles : `cameraAt` + `CameraRig` et `Window` (`src/components/style/Camera.tsx`, plans clés en ease-in-out), flou de
+mouvement par sous-images `MotionBlur` (`src/components/style/MotionBlur.tsx`). Démonstration : composition `Briques`.

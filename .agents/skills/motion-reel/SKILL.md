@@ -6,7 +6,7 @@ description: Produire un film motion design Applipro (démo produit, annonce, po
 # motion-reel — pipeline de production
 
 Lire `AGENTS.md` d'abord. Chaque étape a une **gate** : s'arrêter, montrer le résultat (images, tableau) et attendre la
-validation avant de continuer, sauf si l'utilisateur a demandé un « run complet ».
+validation avant de continuer, sauf si l'utilisateur a demandé un « run complet » ou le **mode express** (voir plus bas).
 
 1. **Brief.** `npm run new-film -- <slug> "Titre"`. Remplir `films/<slug>/brief.md` (balises inputs / direction / structure /
    faits / start). Si la demande est trop courte, ne pas inventer : poser au maximum 5 questions ciblées (style ou référence,
@@ -32,12 +32,25 @@ validation avant de continuer, sauf si l'utilisateur a demandé un « run comple
 7. **Capteurs puis premier montage.** `npm run qa -- <Film> 9x16 --preflight` : boucle de correction jusqu'à zéro (le pire défaut à chaque
    tour, 5 tours maximum, arrêt si un tour ne progresse pas, cf. `AGENTS.md`). Puis `npm run render -- <Film> 9x16 --draft`
    et critique **par un regard séparé** (sous-agent `motion-critic` ou passe dédiée) avec `reviews/CRITIC.md` :
-   corriger les 3 pires défauts, re-rendre. 3 passes au maximum.
+   corriger les 3 pires défauts, re-rendre. 3 passes au maximum. Les compteurs `saccade` et `densiteEvenements`
+   du rapport QA signalent les mouvements cassés et les passages trop calmes : les traiter avant la critique.
 8. **Son et formats.** Vérifier le calage des sons dans `timeline.ts`. `npm run render -- <Film>` (3 formats, qualité finale),
    puis `npm run qa -- <Film>` (contrôle aussi les MP4 : format, frames, son) jusqu'à zéro, `npm run critic` sur chacun.
-9. **Livraison.** MP4 dans `out/` ; `reviews/<Film>-9x16/review.md` (notes, défauts restants, choix faits) ; nouvelles
-   lignes dans `reviews/JOURNAL.md` (un défaut vu deux fois → corriger le studio) ; commit des sources.
-   Résumer à l'utilisateur ce qui est livré et ce qui reste à valider (musique sous licence, voix off).
+9. **Livraison.** MP4 dans `out/` ; `reviews/<Film>-<format>/review.json` écrit par le critique, puis
+   `npm run verdict -- <Film>` (calcule LIVRABLE / PILOTE INTERNE / À REPRENDRE selon la cible du brief et régénère
+   `review.md`) ; `npm run review-page -- <Film>` pour la relecture humaine ; nouvelles lignes dans `reviews/JOURNAL.md`
+   (un défaut vu deux fois → corriger le studio) ; commit des sources.
+   Résumer à l'utilisateur le verdict calculé, ce qui est livré et ce qui reste à valider (musique sous licence, voix off).
+
+## Mode express (post rapide, retouche, déclinaison)
+Déclenché par « mode express », « vite fait » ou une demande de moins de 10 s sans enjeu de diffusion large.
+1. **Brief minimal** : `npm run new-film`, remplir `brief.md` avec ce qui est donné ; au plus 2 questions si le texte de fin
+   ou l'écran à montrer manque, sinon aucune. Cible `interne` par défaut.
+2. **Une seule direction** : la fiche de style la plus proche, sans images comparées. Shot list en tableau dans `brief.md`.
+3. **Construction** avec les briques existantes uniquement (`src/components/`, `src/components/style/`).
+4. **Contrôles inchangés** : `npm run qa -- <Film> <format> --preflight` à zéro, `npm run render`, `npm run qa` final,
+   critique séparée et `npm run verdict`. Le mode express supprime les gates, **jamais les contrôles**.
+5. Montrer le MP4 et le verdict en une fois. Passer en pipeline complet si la cible devient `public`.
 
 ## Garde-fous
 - Marquer avec `data-qa="caption"` ou `data-qa="text"` tout texte qui doit être lu, sinon les capteurs ne le voient pas.

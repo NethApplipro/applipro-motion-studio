@@ -27,7 +27,8 @@ ordinateur RH et tablette reliés → « 100 000+ collaborateurs accompagnés »
 ## Interdits spécifiques
 KPI inventés, argot, plus d'une couleur d'accent hors badges, coupes franches en dehors du pivot.
 
-## Briques à créer
-`WordByWord` (phrase mot par mot), `GiantWord`, `DepthLayer` (flou de profondeur), `Camera`, `Counter` + `Badge`,
-`FlyingCard` (trajectoire 3D + chute dans un dossier), `WorkflowBuilder` (liste + cartes connectées), `OrbitRing`,
-`PerspectiveScreen` (écran incliné en 3D), `Cursor`, rendu avec flou de mouvement.
+## Briques
+- Disponibles : `KineticText` (phrase mot par mot, `Kinetic.tsx`), `SlamWord` (mot géant), `cameraAt`/`CameraRig`
+  (`Camera.tsx`), `Cursor` (`Morph.tsx`), `MotionBlur`. Démonstration : composition `Briques`.
+- Encore à créer : `DepthLayer` (flou de profondeur), `Counter` + `Badge`, `FlyingCard` (trajectoire 3D + chute dans un
+  dossier), `WorkflowBuilder` (liste + cartes connectées), `OrbitRing`, `PerspectiveScreen` (écran incliné en 3D).

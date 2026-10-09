@@ -12,6 +12,8 @@ test('les options dangereuses ou mal orthographiées sont refusées', () => {
 	assert.throws(() => qaOptions({preflight: 'false'}, ['9x16']));
 	assert.throws(() => qaOptions({prefligth: true}, ['9x16']));
 	assert.throws(() => qaOptions({}, ['portrait']));
+	for (const jobs of ['0', '-2', '1.5', 'beaucoup', '64']) assert.throws(() => qaOptions({jobs}, ['9x16']));
+	assert.doesNotThrow(() => qaOptions({jobs: '4'}, ['9x16']));
 });
 const composition = {width: 1080, height: 1920, fps: 30, durationInFrames: 450};
 const video = {codec_type: 'video', codec_name: 'h264', width: 1080, height: 1920, pix_fmt: 'yuv420p', color_range: 'tv', color_space: 'bt709', avg_frame_rate: '30000/1000', nb_read_frames: '450'};

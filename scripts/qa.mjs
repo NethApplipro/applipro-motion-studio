@@ -1,18 +1,26 @@
 // Capteurs automatiques : le film ne sort que si tous les compteurs sont à zéro.
 //   npm run qa -- PremierJour                 → 3 formats
 //   npm run qa -- PremierJour 9x16 --preflight --step=3 → précontrôle échantillonné, sans MP4
+//   npm run qa -- MonFilm 1x1 --jobs=4      → 4 frames rendues en parallèle (défaut : nombre de cœurs, 4 au plus)
 //   npm run qa -- MonFilm --loop              → ajoute le test de boucle (première = dernière image (test strict))
 // Écrit reviews/<Film>-<format>/qa.json et qa.md. Code de sortie 1 si un compteur n'est pas à zéro.
-import {renderStill} from '@remotion/renderer';
+import {renderFrames, renderStill} from '@remotion/renderer';
+import os from 'node:os';
 import {qaOptions, videoIssues, loudnessIssues} from './qa-validation.mjs';
 import {createHash} from 'node:crypto';
-import {existsSync, mkdirSync, writeFileSync} from 'node:fs';
-import {browserExecutable, FORMATS, ffmpeg, ffprobe, getComposition, parseArgs} from './lib.mjs';
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {browserExecutable, filmSlug, FORMATS, ffmpeg, ffprobe, getComposition, parseArgs} from './lib.mjs';
+import {activity, calmSpans, lumaGrid, saccades, SEUIL_ACTIVITE} from './motion-analysis.mjs';
 
 const {flags, rest} = parseArgs();
 const [film = 'PremierJour', ...only] = rest;
 const formats = only.length ? only : FORMATS;
 const {preflight, step} = qaOptions(flags, formats);
+// Onglets en parallèle : --jobs=N, sinon autant que de cœurs (4 au plus, la mémoire suit vite).
+const jobs = Number(flags.jobs ?? Math.max(1, Math.min(4, os.cpus().length)));
+// Réglages propres au film (films/<slug>/qa.json), ex. {"maxGapSeconds": 2} pour un style rapide.
+const filmQa = existsSync(`films/${filmSlug(film)}/qa.json`) ? JSON.parse(readFileSync(`films/${filmSlug(film)}/qa.json`, 'utf8')) : {};
+const maxGap = Number(filmQa.maxGapSeconds ?? 4);
 
 // Chaque compteur, avec la consigne de correction donnée à l'agent.
 const COUNTERS = {
@@ -23,6 +31,8 @@ const COUNTERS = {
 	chevauchement: "Deux textes visibles se superposent : décaler les timings d'entrée/sortie (timeline.ts) ou les positions.",
 	couleurHorsCharte: 'Couleur absente de brand/brand.json : utiliser C.<couleur> (src/lib/brand.ts), jamais une couleur en dur.',
 	tempsMort: "Image figée plus de 4 s : ajouter un événement (règle : un événement toutes les 2 à 4 s).",
+	densiteEvenements: "Passage trop calme (seule une dérive lente bouge) : ajouter un événement visible dans timeline.ts, ou régler maxGapSeconds dans films/<slug>/qa.json si le style le justifie.",
+	saccade: "Mouvement cassé (saut, déplacement trop rapide sans flou, ou arrêt sec) : utiliser sp()/track() au lieu d'une interpolation linéaire bornée, envelopper les sorties rapides dans <MotionBlur> (src/components/style), ou ralentir le ressort.",
 	nonDeterministe: "La même frame rendue deux fois diffère : chercher Math.random, Date, état React, transition CSS.",
 	boucle: "La dernière image ne rejoint pas la première : aligner l'état final sur l'état initial.",
 	fichierVideo: 'Le MP4 ne respecte pas la fiche technique : relancer npm run render (H.264, yuv420p bt709, AAC, durée exacte).',
@@ -38,6 +48,8 @@ for (const format of formats) {
 	const details = [];
 	if (preflight) { counts.fichierVideo = null; counts.loudness = null; }
 	if (!flags.loop) counts.boucle = null;
+	// Les trajectoires exigent des frames consécutives : en précontrôle échantillonné, lancer --step=1 pour les voir.
+	if (step > 1) counts.saccade = null;
 	const add = (type, frame, detail) => {
 		counts[type]++;
 		if (details.filter((d) => d.type === type).length < 12) details.push({type, frame, t: frame === null ? null : +(frame / fps).toFixed(2), detail});
@@ -47,26 +59,47 @@ for (const format of formats) {
 	for (let f = 0; f < n; f += step) frames.push(f);
 	if (frames.at(-1) !== n - 1) frames.push(n - 1);
 
+	// Rendu des frames en parallèle dans un seul navigateur (jobs onglets) : chaque frame arrive avec son image et le
+	// rapport du capteur ; l'analyse se fait ensuite dans l'ordre des frames.
+	const rendered = new Map();
+	const reports = new Map();
+	let done = 0;
+	await renderFrames({
+		serveUrl, composition, inputProps: composition.props ?? {}, frames, outputDir: null, imageFormat: 'jpeg', jpegQuality: 80,
+		concurrency: jobs, browserExecutable, logLevel: 'error', muted: true, envVariables: {REMOTION_QA: '1'},
+		onStart: () => {},
+		onFrameUpdate: () => process.stdout.write(`\r${id} : ${++done}/${frames.length} frames (${jobs} en parallèle)`),
+		onBrowserLog: (log) => {
+			if (log.text.startsWith('QA:')) {
+				const r = JSON.parse(log.text.slice(3));
+				reports.set(r.frame, r);
+			} else if (log.type === 'error') add('erreurs', null, log.text.slice(0, 300));
+		},
+		onFrameBuffer: (buffer, frame) => {
+			rendered.set(frame, {hash: createHash('sha1').update(buffer).digest('hex'), grid: lumaGrid(buffer)});
+		},
+	}).catch((e) => add('erreurs', null, String(e.message ?? e).slice(0, 300)));
+	process.stdout.write('\n');
+
 	const hashes = [];
+	const trajectoires = {};
+	const activite = [];
+	let prevGrid = null;
+	let prevFrame = null;
 	let lastIssues = new Map();
 	let measured = 0;
 	for (const frame of frames) {
-		const reports = [];
-		const {buffer} = await renderStill({
-			serveUrl, composition, frame, output: null, imageFormat: 'jpeg', jpegQuality: 80, browserExecutable, logLevel: 'error',
-			envVariables: {REMOTION_QA: '1'},
-			onBrowserLog: (log) => {
-				if (log.text.startsWith('QA:')) reports.push(JSON.parse(log.text.slice(3)));
-				else if (log.type === 'error') add('erreurs', frame, log.text.slice(0, 300));
-			},
-		}).catch((e) => {
-			add('erreurs', frame, String(e.message ?? e).slice(0, 300));
-			return {buffer: null};
-		});
-		hashes.push({frame, hash: buffer ? createHash('sha1').update(buffer).digest('hex') : null});
+		const image = rendered.get(frame);
+		hashes.push({frame, hash: image?.hash ?? null});
 		// Un même défaut présent sur plusieurs frames consécutives compte une seule fois.
-		const report = reports.filter((r) => r.frame === frame).at(-1);
+		const report = reports.get(frame);
 		if (report?.measured) measured++;
+		for (const [name, [x, y, o, flou]] of Object.entries(report?.motion ?? {})) (trajectoires[name] ??= []).push([frame, x, y, o, flou]);
+		if (image) {
+			activite.push([frame, prevGrid ? +activity(prevGrid, image.grid, frame - prevFrame).toFixed(2) : SEUIL_ACTIVITE]);
+			prevGrid = image.grid;
+			prevFrame = frame;
+		}
 		const current = new Map();
 		for (const issue of report?.issues ?? []) {
 			const key = `${issue.type}|${issue.detail.replace(/\d+(\.\d+)? px/g, '')}`;
@@ -74,9 +107,7 @@ for (const format of formats) {
 			if (!lastIssues.has(key)) add(issue.type, frame, issue.detail);
 		}
 		lastIssues = current;
-		process.stdout.write(`\r${id} : frame ${frame}/${n - 1}`);
 	}
-	process.stdout.write('\n');
 	// Garde-fou : un capteur qui n'a rien mesuré ne doit jamais afficher « zéro défaut ».
 	if (measured < frames.length) add('erreurs', null, `Capteur QA : ${frames.length - measured} frame(s) non mesurée(s) sur ${frames.length}. Vérifier que le film passe par withQA (src/Root.tsx).`);
 
@@ -88,6 +119,10 @@ for (const format of formats) {
 		if (span > 4) add('tempsMort', hashes[runStart].frame, `Image identique de ${(hashes[runStart].frame / fps).toFixed(1)} s à ${(hashes[i - 1].frame / fps).toFixed(1)} s (${span.toFixed(1)} s).`);
 		runStart = i;
 	}
+
+	// Densité d'événements : la première frame compte comme un événement (l'image apparaît).
+	for (const issue of calmSpans(activite, {fps, maxGap})) add(issue.type, issue.frame, issue.detail);
+	if (step === 1) for (const issue of saccades(trajectoires, composition)) add(issue.type, issue.frame, issue.detail);
 
 	// Plusieurs positions, après parcours du film : contrôle aussi le rendu sans sonde QA.
 	for (const index of [...new Set([0, Math.floor(hashes.length / 2), hashes.length - 1])]) {
@@ -131,10 +166,11 @@ for (const format of formats) {
 	const dir = `reviews/${id}`;
 	const reportName = preflight ? 'preflight' : 'qa';
 	mkdirSync(dir, {recursive: true});
-	writeFileSync(`${dir}/${reportName}.json`, JSON.stringify({id, mode: preflight ? 'preflight' : 'final', technicalPassed: !preflight && total === 0, step, framesChecked: frames.length, counts, details, video: videoNote}, null, 2));
+	writeFileSync(`${dir}/${reportName}.json`, JSON.stringify({id, mode: preflight ? 'preflight' : 'final', technicalPassed: !preflight && total === 0, step, framesChecked: frames.length, counts, details, video: videoNote,
+		series: {fps, maxGap, seuilActivite: SEUIL_ACTIVITE, activite, trajectoires}}));
 	const table = Object.entries(counts).map(([k, v]) => `| ${v === null ? '—' : v === 0 ? '✅' : '❌'} | ${k} | ${v ?? 'non contrôlé'} |`).join('\n');
 	const list = details.map((d) => `- **${d.type}**${d.t === null ? '' : ` à ${d.t} s (frame ${d.frame})`} : ${d.detail}\n  → ${COUNTERS[d.type]}`).join('\n');
-	const md = `# QA — ${id}\n\n${preflight ? '**PRÉCONTRÔLE — ne valide pas une livraison.**' : '**VALIDATION TECHNIQUE — critique visuelle et sonore séparée obligatoire.**'}\n\n${total === 0 ? '**Aucun défaut détecté dans les contrôles exécutés.**' : `**${total} défaut(s).** Corriger le plus grave, relancer \`npm run qa -- ${film} ${format}\`.`}\n\n| | Compteur | Valeur |\n|---|---|---|\n${table}\n\nFrames contrôlées : ${frames.length} (une sur ${step}). Fichier vidéo : ${videoNote}.\n${list ? `\n## Détails\n${list}\n` : ''}`;
+	const md = `# QA — ${id}\n\n${preflight ? '**PRÉCONTRÔLE — ne valide pas une livraison.**' : '**VALIDATION TECHNIQUE — critique visuelle et sonore séparée obligatoire.**'}\n\n${total === 0 ? '**Aucun défaut détecté dans les contrôles exécutés.**' : `**${total} défaut(s).** Corriger le plus grave, relancer \`npm run qa -- ${film} ${format}\`.`}\n\n| | Compteur | Valeur |\n|---|---|---|\n${table}\n\nFrames contrôlées : ${frames.length} (une sur ${step}). Fichier vidéo : ${videoNote}. Plage calme maximale autorisée : ${maxGap} s.\n${list ? `\n## Détails\n${list}\n` : ''}`;
 	writeFileSync(`${dir}/${reportName}.md`, md);
 	if (list) console.log(list);
 	console.log(`${total === 0 ? '✓' : '✗'} ${id} : ${Object.entries(counts).filter(([, v]) => v).map(([k, v]) => `${k}=${v}`).join(', ') || (preflight ? 'précontrôle réussi, MP4 non contrôlé' : 'contrôles techniques réussis')} → ${dir}/${reportName}.md`);
