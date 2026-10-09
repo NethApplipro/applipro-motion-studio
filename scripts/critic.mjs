@@ -15,7 +15,8 @@ const id = path.basename(video, '.mp4');
 const dir = `reviews/${id}`;
 mkdirSync(dir, {recursive: true});
 
-const dur = Number(ffprobe(['-show_entries', 'format=duration', '-of', 'csv=p=0', video]));
+const dur = Number(ffprobe(['-select_streams', 'v:0', '-show_entries', 'stream=duration', '-of', 'csv=p=0', video]));
+if (!Number.isFinite(dur) || dur <= 0) throw new Error('Durée vidéo absente ou invalide.');
 const info = ffprobe(['-select_streams', 'v:0', '-show_entries', 'stream=codec_name,width,height,pix_fmt,r_frame_rate', '-of', 'csv=p=0', video]);
 let images;
 
