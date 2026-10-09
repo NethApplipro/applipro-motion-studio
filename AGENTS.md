@@ -42,6 +42,8 @@ Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder le
 CI (`.github/workflows/motion-quality.yml`) : seuls les films touchés par la PR sont contrôlés (`scripts/ci-plan.mjs` ;
 le code partagé relance tous les films, la doc seule aucun). PR en brouillon → précontrôle ; PR prête ou lancement
 manuel → rendu, QA finale, déterminisme et verdict. `npm run qa` rend plusieurs images en parallèle (`--jobs=N`).
+Références des tests visuels : toujours rendues par la CI (`.github/workflows/visual-references.yml`, lancement manuel ou
+commit contenant `[maj-references-visuelles]`), jamais depuis un autre navigateur ; regarder ce qui change avant d'accepter.
 
 ## Organisation
 | Chemin | Rôle |
