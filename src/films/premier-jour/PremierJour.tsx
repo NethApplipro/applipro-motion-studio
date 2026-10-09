@@ -149,7 +149,7 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 						</div>
 						<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: k(22)}}>
 							<div style={{opacity: logoDraw > 0 ? 1 : 0}}><Logo size={k(L.logo)} draw={logoDraw} word={logoWord} /></div>
-							<div data-qa="text" style={{fontSize: k(L.logo * 0.33), fontWeight: 500, opacity: urlIn * 0.85, transform: `translateY(${(1 - urlIn) * k(14)}px)`}}>
+							<div data-qa="text" style={{fontSize: k(Math.max(30, L.logo * 0.33)), fontWeight: 500, opacity: urlIn * 0.85, transform: `translateY(${(1 - urlIn) * k(14)}px)`}}>
 								{BRAND.baseline} · {BRAND.url}
 							</div>
 						</div>

@@ -15,3 +15,4 @@ Chaque entrée : date · défaut · cause · correction du film · correction du
 | 2026-10-09 | Couleur `#0B0F1A` hors charte (téléphone, tap) | Couleur codée en dur | `C.black` | Compteur `couleurHorsCharte` |
 | 2026-10-09 | Sous-titres et chiffre sous la colonne de boutons TikTok/Reels | Largeur de 900 px sans marge à droite | Largeur 820 px, chiffre 160 px | Compteur `texteHorsZoneSure` (150 px à droite en 9:16) |
 | 2026-10-09 | Capteur QA qui affichait « zéro défaut » sans rien mesurer | Film mesuré hors écran dans un conteneur de taille nulle | — | Taille explicite + garde-fou « frames non mesurées » = erreur |
+| 2026-10-09 | Baseline de fin trop petite en 1:1 (26 px) | Taille proportionnelle au logo, plus petit en carré | Taille plancher de 30 px | Compteur `texteTropPetit` (un capteur a trouvé ce que l'œil avait laissé passer) |
