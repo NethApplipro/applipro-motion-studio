@@ -7,6 +7,7 @@ import {Captions, Cue} from '../../components/Caption';
 import {CHAOS_ITEMS, ChaosCard} from '../../components/Chaos';
 import {Phone, PHONE_W, Tap} from '../../components/Phone';
 import {Logo} from '../../components/Logo';
+import {MotionBlur} from '../../components/style/MotionBlur';
 import {CopilotScreen, HomeScreen, OnboardingScreen} from '../../components/app/Screens';
 import {PremierJourProps} from './schema';
 import {DURATION, SFX, T} from './timeline';
@@ -25,24 +26,6 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 	const L = LAYOUT[kind];
 	const k = (v: number) => v * u;
 
-	// --- Téléphone : une seule forme continue de 2,8 s à 11 s -----------------------------
-	const phoneY = track(frame, fps, height, [
-		{at: T.phoneIn, to: 0, preset: 'heavy'},
-		{at: T.phoneOut, to: height * 1.1, preset: p.ressort},
-	]);
-	const phoneRot = track(frame, fps, 9, [
-		{at: T.phoneIn, to: 0, preset: 'heavy'},
-		{at: T.phoneOut, to: -7},
-	]);
-	const phoneZoom = track(frame, fps, 0.92, [
-		{at: T.phoneIn, to: 1, preset: 'heavy'},
-		{at: T.cap5, to: 1.035},
-		{at: T.toCopilot, to: 1},
-	]);
-	const screenX = track(frame, fps, 0, [
-		{at: T.toOnboarding, to: -PHONE_W, preset: p.ressort},
-		{at: T.toCopilot, to: -PHONE_W * 2, preset: p.ressort},
-	]);
 	const cx = k(L.phone.cx);
 	const cy = k(L.phone.cy);
 
@@ -61,10 +44,6 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 		const s = (0.86 + 0.14 * inP) * (1 - 0.85 * out);
 		return {item, x, y, rot: rot * (1 - out), s, o: inP * (1 - ease(frame, [T.collapse + 6, T.collapse + 16]))};
 	});
-
-	// --- Écran d'onboarding : coches et progression --------------------------------------
-	const done = T.checks.map((at) => sp(frame, fps, at, 'snappy'));
-	const progress = 0.06 + done.reduce((a, d) => a + d * 0.23, 0);
 
 	// --- Preuve chiffrée -----------------------------------------------------------------
 	const metricIn = sp(frame, fps, T.metric, 'snappy');
@@ -90,44 +69,20 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 		{at: T.cap6, text: p.copilote},
 	];
 
-	const tapP = (at: number) => (frame - at) / 14;
-	const tapY = [318, 390, 462];
-
 	return (
 		<AbsoluteFill style={{background: C.white, fontFamily: SANS}}>
 			<Captions cues={cues} until={T.phoneOut} x={k(L.cap.x)} y={k(L.cap.y)} width={k(L.cap.w)} size={k(L.cap.size)} />
 
 			{chaos.map(({item, x, y, rot, s, o}, i) =>
 				o <= 0.001 ? null : (
-					<div key={i} style={{position: 'absolute', left: x, top: y, transform: `translate(-50%, -50%) rotate(${rot}deg) scale(${s})`, opacity: o}}>
+					<div key={i} data-motion={`carte-${i}`} style={{position: 'absolute', left: x, top: y, transform: `translate(-50%, -50%) rotate(${rot}deg) scale(${s})`, opacity: o}}>
 						<ChaosCard item={item} u={u * L.chaos.card} />
 					</div>
 				),
 			)}
 
-			{phoneY < height * 1.05 ? (
-				<Phone scale={L.phone.scale * u * phoneZoom} style={{left: cx, top: cy, transform: `translateY(${phoneY}px) rotate(${phoneRot}deg)`}}>
-					<div style={{position: 'absolute', inset: 0, width: PHONE_W * 3, display: 'flex', transform: `translateX(${screenX}px)`}}>
-						<div style={{position: 'relative', width: PHONE_W, height: '100%'}}>
-							<HomeScreen name={p.prenom} reveal={ease(frame, [T.homeReveal, T.homeReveal + 30])} pressed={Math.max(0, 1 - Math.abs(frame - T.tapContinue - 3) / 5)} />
-						</div>
-						<div style={{position: 'relative', width: PHONE_W, height: '100%'}}>
-							<OnboardingScreen done={done} progress={progress} />
-						</div>
-						<div style={{position: 'relative', width: PHONE_W, height: '100%'}}>
-							<CopilotScreen
-								ask={sp(frame, fps, T.ask, 'snappy')}
-								thinking={interpolate(frame, [...T.thinking], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})}
-								typing={interpolate(frame, [...T.typing], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})}
-								chip={sp(frame, fps, T.chip, 'snappy')}
-							/>
-						</div>
-					</div>
-					<Tap x={305} y={338} p={tapP(T.tapContinue - 4)} />
-					{T.taps.map((at, i) => <Tap key={at} x={300} y={tapY[i]} p={tapP(at)} />)}
-					<Tap x={190} y={327} p={tapP(T.tapSuggestion)} />
-				</Phone>
-			) : null}
+			{/* Sortie rapide du téléphone (plus de 300 px par frame) : flou de mouvement pendant la sortie seulement. */}
+			<MotionBlur active={frame >= T.phoneOut && frame < T.phoneOut + 16} render={(f) => <PhoneLayer f={f} p={p} cx={cx} cy={cy} scale={L.phone.scale * u} height={height} />} />
 
 			{frame >= T.metric - 2 && frame < T.end + 20 ? (
 				<div style={{position: 'absolute', left: 0, right: 0, top: height / 2 - k(L.metric) * 0.75, textAlign: 'center', opacity: metricIn * (1 - metricOut), transform: `translateY(${(1 - metricIn) * k(40) - metricOut * k(60)}px)`}}>
@@ -172,5 +127,58 @@ export const PremierJour: React.FC<PremierJourProps> = (p) => {
 				</>
 			) : null}
 		</AbsoluteFill>
+	);
+};
+
+/** Téléphone et ses écrans à la frame `f` (fractionnaire pendant le flou de mouvement). */
+const PhoneLayer: React.FC<{f: number; p: PremierJourProps; cx: number; cy: number; scale: number; height: number}> = ({f, p, cx, cy, scale, height}) => {
+	const {fps} = useVideoConfig();
+	const frame = f;
+	// Une seule forme continue de 2,8 s à 11 s.
+	const phoneY = track(frame, fps, height, [
+		{at: T.phoneIn, to: 0, preset: 'heavy'},
+		{at: T.phoneOut, to: height * 1.1, preset: p.ressort},
+	]);
+	const phoneRot = track(frame, fps, 9, [
+		{at: T.phoneIn, to: 0, preset: 'heavy'},
+		{at: T.phoneOut, to: -7},
+	]);
+	const phoneZoom = track(frame, fps, 0.92, [
+		{at: T.phoneIn, to: 1, preset: 'heavy'},
+		{at: T.cap5, to: 1.035},
+		{at: T.toCopilot, to: 1},
+	]);
+	const screenX = track(frame, fps, 0, [
+		{at: T.toOnboarding, to: -PHONE_W, preset: p.ressort},
+		{at: T.toCopilot, to: -PHONE_W * 2, preset: p.ressort},
+	]);
+
+	const done = T.checks.map((at) => sp(frame, fps, at, 'snappy'));
+	const progress = 0.06 + done.reduce((a, d) => a + d * 0.23, 0);
+	const tapP = (at: number) => (frame - at) / 14;
+	const tapY = [318, 390, 462];
+	if (phoneY >= height * 1.05) return null;
+	return (
+		<Phone scale={scale * phoneZoom} style={{left: cx, top: cy, transform: `translateY(${phoneY}px) rotate(${phoneRot}deg)`}}>
+			<div style={{position: 'absolute', inset: 0, width: PHONE_W * 3, display: 'flex', transform: `translateX(${screenX}px)`}}>
+				<div style={{position: 'relative', width: PHONE_W, height: '100%'}}>
+					<HomeScreen name={p.prenom} reveal={ease(frame, [T.homeReveal, T.homeReveal + 30])} pressed={Math.max(0, 1 - Math.abs(frame - T.tapContinue - 3) / 5)} />
+				</div>
+				<div style={{position: 'relative', width: PHONE_W, height: '100%'}}>
+					<OnboardingScreen done={done} progress={progress} />
+				</div>
+				<div style={{position: 'relative', width: PHONE_W, height: '100%'}}>
+					<CopilotScreen
+						ask={sp(frame, fps, T.ask, 'snappy')}
+						thinking={interpolate(frame, [...T.thinking], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})}
+						typing={interpolate(frame, [...T.typing], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})}
+						chip={sp(frame, fps, T.chip, 'snappy')}
+					/>
+				</div>
+			</div>
+			<Tap x={305} y={338} p={tapP(T.tapContinue - 4)} />
+			{T.taps.map((at, i) => <Tap key={at} x={300} y={tapY[i]} p={tapP(at)} />)}
+			<Tap x={190} y={327} p={tapP(T.tapSuggestion)} />
+		</Phone>
 	);
 };

@@ -4,14 +4,15 @@
 // test de boucle (première vs dernière image) et fiche technique (durée, format, loudness).
 // Sans ffmpeg complet : images séparées dans reviews/<id>/frames/ au lieu des planches.
 // Ensuite : lire reviews/CRITIC.md et noter le film.
-import {mkdirSync, rmSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
+import {activitySvg, speedSvg} from './charts.mjs';
 import {FFMPEG_HINT, ffmpeg, ffprobe, hasFullFfmpeg, parseArgs} from './lib.mjs';
 
 const {rest} = parseArgs();
 const [video] = rest;
 if (!video) throw new Error('Usage : npm run critic -- out/<Film>-<format>.mp4');
-const id = path.basename(video, '.mp4');
+const id = path.basename(video, '.mp4').replace(/\.draft$/, '');
 const dir = `reviews/${id}`;
 mkdirSync(dir, {recursive: true});
 
@@ -30,7 +31,10 @@ if (hasFullFfmpeg) {
 	ffmpeg(['-i', `${dir}/.first.png`, '-i', `${dir}/.last.png`, '-filter_complex', '[0]scale=360:-2[a];[1]scale=360:-2[b];[a][b]hstack', `${dir}/loop.jpg`]);
 	rmSync(`${dir}/.first.png`);
 	rmSync(`${dir}/.last.png`);
-	images = 'contact.jpg, strip.jpg, phone-360.jpg, loop.jpg';
+	// Traînées : chaque case superpose les 8 dernières frames. Un mouvement fluide laisse une traînée régulière,
+	// un saut laisse deux images séparées, un élément immobile reste net.
+	ffmpeg(['-i', video, '-vf', `tmix=frames=8,fps=2,scale=240:-2,tile=6x${Math.ceil(cells / 6)}:padding=4:color=#202020`, '-frames:v', '1', `${dir}/motion.jpg`]);
+	images = 'contact.jpg, strip.jpg, phone-360.jpg, loop.jpg, motion.jpg';
 } else {
 	console.warn(`⚠ ffmpeg complet absent : images séparées au lieu des planches. ${FFMPEG_HINT}`);
 	const frames = `${dir}/frames`;
@@ -52,5 +56,15 @@ const tech = `# Fiche technique — ${id}
 - Loudness : ${json.input_i} LUFS intégrés · crête ${json.input_tp} dBTP (cible -14 LUFS, crête ≤ -1 dBTP)
 - Images : ${images}
 `;
-writeFileSync(`${dir}/tech.md`, tech);
+// Courbes d'activité et de vitesse depuis le dernier rapport QA (final de préférence).
+const report = [`${dir}/qa.json`, `${dir}/preflight.json`].find(existsSync);
+let charts = 'aucune (lancer npm run qa avant npm run critic)';
+if (report) {
+	const qa = JSON.parse(readFileSync(report, 'utf8'));
+	const n = Math.round(dur * (qa.series?.fps ?? 30));
+	writeFileSync(`${dir}/activite.svg`, activitySvg(qa.series, n, `Activité — ${id}`));
+	writeFileSync(`${dir}/vitesses.svg`, speedSvg(qa.series, n, `Vitesses — ${id}`));
+	charts = `activite.svg, vitesses.svg (depuis ${path.basename(report)}, une frame sur ${qa.step})`;
+}
+writeFileSync(`${dir}/tech.md`, `${tech}- Courbes : ${charts}\n`);
 console.log(tech);

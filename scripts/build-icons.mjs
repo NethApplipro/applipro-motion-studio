@@ -8,6 +8,7 @@ const ICONS = {
 	tools: 'apps-2-line', user: 'user-line', bell: 'notification-3-line', doc: 'file-text-line', pen: 'quill-pen-line',
 	link: 'external-link-line', check: 'check-line', arrow: 'arrow-right-line', back: 'arrow-left-s-line',
 	search: 'search-line', mail: 'mail-line', spark: 'sparkling-2-fill', pdf: 'file-pdf-2-line', lock: 'safe-2-line',
+	folder: 'folder-line', upload: 'upload-cloud-2-line', onboarding: 'layout-left-line', interview: 'user-voice-line', form: 'survey-line', contacts: 'contacts-book-line',
 };
 
 const root = 'node_modules/remixicon/icons';

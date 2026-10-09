@@ -135,3 +135,33 @@ export const CopilotScreen: React.FC<{ask: number; thinking: number; typing: num
 		</div>
 	);
 };
+
+const TOOLS: {title: string; icon: IconName; badge?: number}[] = [
+	{title: 'Onboarding', icon: 'onboarding', badge: 4},
+	{title: 'Coffre-fort', icon: 'lock'},
+	{title: 'Entretien individuel', icon: 'interview'},
+	{title: 'Formulaire', icon: 'form'},
+	{title: 'Annuaire', icon: 'contacts'},
+];
+
+/** Outils (FO_40). `pressed` : index de la tuile pressée (-1 : aucune), `press` 0→1 : enfoncement. */
+export const ToolsScreen: React.FC<{pressed?: number; press?: number}> = ({pressed = -1, press = 0}) => (
+	<div style={screen}>
+		<TopBar />
+		<div style={{position: 'absolute', top: 104, left: 20, right: 20}}>
+			<div style={{fontSize: 32, fontWeight: 700, letterSpacing: -1.1}}>Outils.</div>
+			<div style={{fontSize: 14, color: C.grey60, marginTop: 6}}>Vos services et démarches en un seul endroit.</div>
+			<div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 22}}>
+				{TOOLS.map(({title, icon, badge}, i) => (
+					<div key={title} style={{...card, padding: 16, minHeight: 128, position: 'relative', transform: `scale(${i === pressed ? 1 - press * 0.05 : 1})`, background: i === pressed ? `rgba(51,116,255,${press * 0.06})` : '#FFFFFF'}}>
+						<div style={{width: 40, height: 40, borderRadius: 10, background: C.blue05, color: C.blue, display: 'grid', placeItems: 'center'}}><Icon name={icon} size={20} /></div>
+						{badge ? <div style={{position: 'absolute', top: 14, right: 14, width: 22, height: 22, borderRadius: 99, background: C.blue, color: '#FFFFFF', fontSize: 11, fontWeight: 700, display: 'grid', placeItems: 'center'}}>{badge}</div> : null}
+						<div style={{fontSize: 15, fontWeight: 700, marginTop: 14, lineHeight: 1.2}}>{title}</div>
+						<div style={{fontSize: 12, color: C.grey60, marginTop: 4}}>Disponible</div>
+					</div>
+				))}
+			</div>
+		</div>
+		<TabBar active="Outils" />
+	</div>
+);

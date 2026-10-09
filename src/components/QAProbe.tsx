@@ -9,6 +9,8 @@ import brand from '../../brand/brand.json';
 // Marquer les textes importants dans les films :
 //   data-qa="caption"  → sous-titre / titre (taille mini 58 px en 1080, zone sûre obligatoire)
 //   data-qa="text"     → autre texte qui doit être lu (taille mini 30 px en 1080, zone sûre obligatoire)
+//   data-motion="nom"  → élément dont la trajectoire est suivie (sauts, arrêts brusques). Les textes data-qa sont
+//                        suivis automatiquement. Un nom par élément : « telephone », « carte-2 »…
 
 // Lu à chaque frame (et non au chargement) : Remotion injecte les variables d'environnement au rendu.
 const qaEnabled = () => typeof process !== 'undefined' && process.env.REMOTION_QA === '1';
@@ -29,6 +31,13 @@ const toHex = (rgb: number[]) => `#${rgb.slice(0, 3).map((v) => Math.round(v).to
 const describe = (el: Element) => {
 	const text = (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 50);
 	return `<${el.tagName.toLowerCase()}${el.getAttribute('data-qa') ? ` data-qa=${el.getAttribute('data-qa')}` : ''}>${text ? ` « ${text} »` : ''}`;
+};
+
+// Sous MotionBlur, les enfants sont rendus plusieurs fois (une copie par sous-image) : on ne mesure que la première.
+const isBlurCopy = (el: Element) => {
+	const blur = el.closest('[data-motion-blur]');
+	const first = blur?.firstElementChild?.firstElementChild;
+	return Boolean(blur && first && !first.contains(el));
 };
 
 const effectiveOpacity = (el: Element, stop: Element) => {
@@ -58,7 +67,7 @@ export const QAProbe: React.FC<{children: React.ReactNode}> = ({children}) => {
 			const texts: {el: Element; r: DOMRect}[] = [];
 
 			root.querySelectorAll('[data-qa]').forEach((el) => {
-				if (effectiveOpacity(el, root) < 0.6) return;
+				if (isBlurCopy(el) || effectiveOpacity(el, root) < 0.6) return;
 				const scale = (el as HTMLElement).offsetWidth ? (el as HTMLElement).getBoundingClientRect().width / (el as HTMLElement).offsetWidth : 1;
 				const size = parseFloat(getComputedStyle(el).fontSize) * scale;
 				const range = document.createRange();
@@ -121,7 +130,20 @@ export const QAProbe: React.FC<{children: React.ReactNode}> = ({children}) => {
 				}
 			});
 
-			console.log(`QA:${JSON.stringify({frame, issues, measured: box.width === width && box.height === height})}`);
+			// Trajectoires : centre de chaque élément suivi, avec son opacité effective (pour ignorer les éléments invisibles).
+			const motion: Record<string, [number, number, number, number]> = {};
+			const counts = new Map<string, number>();
+			root.querySelectorAll('[data-motion], [data-qa]').forEach((el) => {
+				if (isBlurCopy(el)) return;
+				const base = el.getAttribute('data-motion') ?? `${el.getAttribute('data-qa')}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+				const n = counts.get(base) ?? 0;
+				counts.set(base, n + 1);
+				const r = el.getBoundingClientRect();
+				if (!r.width || !r.height) return;
+				motion[n ? `${base}#${n}` : base] = [Math.round((r.x + r.width / 2 - box.x) * 10) / 10, Math.round((r.y + r.height / 2 - box.y) * 10) / 10, Math.round(effectiveOpacity(el, root) * 100) / 100, el.closest('[data-motion-blur]') ? 1 : 0];
+			});
+
+			console.log(`QA:${JSON.stringify({frame, issues, motion, measured: box.width === width && box.height === height})}`);
 			continueRender(handle);
 		});
 	}, [frame, width, height]);

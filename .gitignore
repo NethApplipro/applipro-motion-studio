@@ -13,3 +13,7 @@ reviews/**/qa.json
 
 reviews/**/preflight.md
 reviews/**/preflight.json
+reviews/**/*.svg
+reviews/**/index.html
+tests/visual/actual/
+tests/visual/diff/

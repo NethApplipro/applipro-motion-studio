@@ -19,13 +19,16 @@
     "typecheck": "tsc --noEmit",
     "qa": "node scripts/qa.mjs",
     "test": "node --test scripts/*.test.mjs",
-    "verdict": "node scripts/verdict.mjs"
+    "verdict": "node scripts/verdict.mjs",
+    "review-page": "node scripts/review-page.mjs",
+    "visual": "node scripts/visual.mjs"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.3.0",
     "@remotion/bundler": "4.0.534",
     "@remotion/cli": "4.0.534",
     "@remotion/fonts": "4.0.534",
+    "@remotion/motion-blur": "^4.0.534",
     "@remotion/renderer": "4.0.534",
     "@remotion/zod-types": "4.0.534",
     "react": "^19.3.0",
@@ -36,6 +39,9 @@
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
+    "jpeg-js": "^0.4.4",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0",
     "typescript": "^7.0.2"
   },
   "engines": {
