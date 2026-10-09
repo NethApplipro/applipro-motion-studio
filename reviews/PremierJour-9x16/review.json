@@ -4,7 +4,15 @@
   "date": "2026-10-07",
   "critique": "motion-critic",
   "cible": "interne",
-  "notes": {"clarte": 8, "hierarchie": 8, "rythme": 8, "mouvement": 8, "lisibilite": 7, "marque": 8, "finition": 8},
+  "notes": {
+    "clarte": 8,
+    "hierarchie": 8,
+    "rythme": 8,
+    "mouvement": 8,
+    "lisibilite": 7,
+    "marque": 8,
+    "finition": 8
+  },
   "commentaires": {
     "clarte": "Problème → app → preuve → signature, compréhensible sans le son",
     "hierarchie": "Un sous-titre et un écran à la fois",
@@ -20,9 +28,30 @@
     "Planche stills : téléphone et chaos trop petits → LAYOUT (téléphone ×1,95, cartes ×1,5)."
   ],
   "defauts": [
-    {"t": [11, 12.5], "preuve": "Scène chiffre un peu nue.", "correctif": "Ajouter un fond de 100 points ou d'avatars seedés qui se remplissent."},
-    {"t": [8.2, 11], "preuve": "Bas de l'écran Copilote vide.", "correctif": "Faire monter le clavier ou ajouter une 2ᵉ question (Screens.tsx, CopilotScreen)."},
-    {"t": [12.5, 15], "preuve": "Symbole vectorisé depuis un JPG.", "correctif": "Remplacer brand/logo-mark.svg par le SVG d'origine s'il est retrouvé."}
+    {
+      "t": [
+        11,
+        12.5
+      ],
+      "preuve": "Scène chiffre un peu nue.",
+      "correctif": "Ajouter un fond de 100 points ou d'avatars seedés qui se remplissent."
+    },
+    {
+      "t": [
+        8.2,
+        11
+      ],
+      "preuve": "Bas de l'écran Copilote vide.",
+      "correctif": "Faire monter le clavier ou ajouter une 2ᵉ question (Screens.tsx, CopilotScreen)."
+    },
+    {
+      "t": [
+        12.5,
+        15
+      ],
+      "preuve": "Symbole vectorisé depuis un JPG.",
+      "correctif": "Remplacer brand/logo-mark.svg par le SVG d'origine s'il est retrouvé."
+    }
   ],
-  "controles": "déterminisme ✓ (frame 230), loudness -14,7 LUFS / -1,0 dBTP, 15 s, H.264."
+  "controles": "déterminisme ✓ (frame 230), loudness -14,7 LUFS / -1,0 dBTP, 15 s, H.264. Note du 2026-10-09 : passe 2 notée avant l'ajout du flou de sortie du téléphone (11,0–11,5 s) ; QA finale refaite après ce changement (tous compteurs à 0, dont saccade et densiteEvenements) ; nouvelle critique recommandée avant une cible public."
 }

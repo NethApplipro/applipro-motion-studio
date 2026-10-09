@@ -17,3 +17,4 @@ reviews/**/*.svg
 reviews/**/index.html
 tests/visual/actual/
 tests/visual/diff/
+reviews/eval-*.md

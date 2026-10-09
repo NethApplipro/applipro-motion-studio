@@ -27,4 +27,4 @@ Critique : motion-critic · 2026-10-07 · cible : **interne**
 ## Verdict : **PILOTE INTERNE**
 - Note : PILOTE INTERNE. Validation technique finale réussie.
 
-Contrôles : déterminisme ✓ (frame 230), loudness -14,7 LUFS / -1,0 dBTP, 15 s, H.264.
+Contrôles : déterminisme ✓ (frame 230), loudness -14,7 LUFS / -1,0 dBTP, 15 s, H.264. Note du 2026-10-09 : passe 2 notée avant l'ajout du flou de sortie du téléphone (11,0–11,5 s) ; QA finale refaite après ce changement (tous compteurs à 0, dont saccade et densiteEvenements) ; nouvelle critique recommandée avant une cible public.

@@ -85,8 +85,10 @@ export const CoffreFort: React.FC<CoffreFortProps> = (p) => {
 	const chipIn = sp(frame, fps, T.chipIn, 'snappy');
 	const held = frame >= T.grab && frame < T.drop;
 	const dropped = sp(frame, fps, T.drop, 'snappy');
-	const chipX = frame < T.grab ? CHIP.x : frame < T.drop ? cur.x + 60 : 20 + 40;
-	const chipY = frame < T.grab ? CHIP.y : frame < T.drop ? cur.y - 10 : 30 - 10;
+	// Après le lâcher, la pièce suit encore le curseur (qui ralentit en ressort) et rejoint sa pointe : pas d'arrêt sec.
+	const grip = frame < T.drop ? 1 : 1 - dropped;
+	const chipX = frame < T.grab ? CHIP.x : cur.x + 60 * grip;
+	const chipY = frame < T.grab ? CHIP.y : cur.y - 10 * grip;
 	const over = frame >= T.drag + 8 && frame < T.toRow;
 	const progress = ease(frame, [...T.progress]);
 	const signed = sp(frame, fps, T.signed, 'snappy');

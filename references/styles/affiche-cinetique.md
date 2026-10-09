@@ -17,3 +17,6 @@
 
 ## Interdits spécifiques
 Polices script, dégradés, plus de 4 mots par slogan, slogans adoucis ou ajoutés.
+
+## Briques
+Disponibles dans `src/components/style/Kinetic.tsx` : `KineticText` (phrase mot à mot sous masque, `**mot**` = accent) et `SlamWord` (mot géant qui claque sur le temps). Démonstration : composition `Briques`.

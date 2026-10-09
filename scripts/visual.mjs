@@ -8,16 +8,8 @@ import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:f
 import pixelmatch from 'pixelmatch';
 import {PNG} from 'pngjs';
 import {browserExecutable, getBundle, listCompositions, parseArgs} from './lib.mjs';
+import {TARGETS} from './visual-targets.mjs';
 
-// Ce qui est surveillé. Ajouter ici chaque nouveau film (3 à 5 frames : ouverture, démonstration, clôture).
-export const TARGETS = {
-	Ecrans: [0, 1, 2, 3],
-	Briques: [20, 50, 110, 140, 175],
-	'PremierJour-9x16': [60, 150, 250, 400],
-	'PremierJour-16x9': [150, 400],
-	'CoffreFort-1x1': [20, 95, 185, 280, 345],
-	'CoffreFort-9x16': [185, 345],
-};
 // Tolérance : anticrénelage et versions de Chrome bougent quelques pixels ; une régression en bouge des milliers.
 const SEUIL_PIXEL = 0.1;
 const MAX_RATIO = 0.004;

@@ -7,11 +7,40 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
+        film: [PremierJour, CoffreFort]
         format: [9x16, 1x1, 16x9]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npm ci
+      - run: npm run setup
+      - run: npm test
+      - run: npm run check
+      - run: npm run render -- ${{ matrix.film }} ${{ matrix.format }}
+      - run: npm run qa -- ${{ matrix.film }} ${{ matrix.format }}
+      - run: npm run determinism -- ${{ matrix.film }}-${{ matrix.format }}
+      # Verdict calculé : QA finale de ce format + critique committée (review.json) selon la cible du film.
+      - run: npm run verdict -- ${{ matrix.film }} ${{ matrix.format }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.film }}-${{ matrix.format }}
+          path: |
+            out/${{ matrix.film }}-${{ matrix.format }}.mp4
+            reviews/${{ matrix.film }}-${{ matrix.format }}/qa.*
+            reviews/${{ matrix.film }}-${{ matrix.format }}/review.md
+          retention-days: 7
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,19 +49,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run setup
-      - run: npm test
-      - run: npm run check
-      - run: npm run render -- PremierJour ${{ matrix.format }}
-      - run: npm run qa -- PremierJour ${{ matrix.format }}
-      - run: npm run determinism -- PremierJour-${{ matrix.format }}
-      # Verdict calculé : QA finale de ce format + critique committée (review.json) selon la cible du film.
-      - run: npm run verdict -- PremierJour ${{ matrix.format }}
+      - run: npm run visual
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
-          name: PremierJour-${{ matrix.format }}
+          name: diff-visuel
           path: |
-            out/PremierJour-${{ matrix.format }}.mp4
-            reviews/PremierJour-${{ matrix.format }}/qa.*
-            reviews/PremierJour-${{ matrix.format }}/review.md
+            tests/visual/diff/
+            tests/visual/actual/
           retention-days: 7
