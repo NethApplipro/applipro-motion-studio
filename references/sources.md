@@ -30,3 +30,13 @@ Relevé à partir des 11 posts X envoyés le 05–06/10/2026 et des dépôts qu'
 - `scene-produit-sombre` : film « Spotify » de @brainextends (corpus MIT, fiche `brainextends-606193`).
 - `camera-continue` : teaser HyperFrames de @jake11moran (fiche `jake11moran-414633`).
 - `affiche-cinetique` : bumper TechHalla (fiche `techhalla-498547`).
+
+## Références vidéo analysées
+| Référence | Apport | Où |
+|---|---|---|
+| Film produit Trellis (MP4 fourni le 09/10/2026, 63 s) | Niveau visé : récit en 2 actes de couleur, phrases mot par mot, mots géants, profondeur et flou de mouvement, démo qui se construit, 3 coupes seulement | `references/inbox/trellis/analyse.md`, `references/styles/recit-cinetique.md` |
+
+## Contributions d'agents
+| Date | Agent | Apport |
+|---|---|---|
+| 2026-10-09 | Codex (branche `codex/fiabiliser-studio-motion`, fusionnée) | Précontrôle `--preflight` séparé de la validation finale, MP4 obligatoire et contrôlé en JSON (BT.709, frames décodées), tests `npm test`, CI GitHub sur les 3 formats, marge sonore -1,5 dBTP avant AAC, durée du flux vidéo dans `critic` |

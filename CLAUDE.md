@@ -6,5 +6,5 @@
 - Effort : `high` pour construire un film, `medium` pour les retouches, `xhigh` pour une pièce phare.
 - Après chaque rendu, déléguer la critique au sous-agent `motion-critic` (lecture seule) plutôt que de se noter soi-même.
 - Pour faire tourner la boucle de correction sans intervention, utiliser la commande d'objectif de Claude Code si ta
-  version la propose (ex. « /goal npm run qa -- PremierJour affiche tous les compteurs à 0, 5 tours maximum »),
+  version la propose (ex. « /goal npm run qa -- PremierJour 9x16 --preflight affiche tous les compteurs à 0, 5 tours maximum »),
   en respectant la règle d'arrêt d'`AGENTS.md`.

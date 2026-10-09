@@ -69,7 +69,8 @@ Vérifier son travail avec `npm run check`, puis `npm run stills` et regarder le
 - Chiffres et affirmations : uniquement depuis des sources Applipro réelles (brief). Jamais de nom ni de logo client sans accord écrit.
 
 ## Capteurs automatiques (`npm run qa`)
-Un film ne sort que si **tous les compteurs sont à zéro** (`reviews/<Film>-<format>/qa.md`, code de sortie 1 sinon) :
+Un film ne sort que si **tous les compteurs de la validation finale sont à zéro** (`reviews/<Film>-<format>/qa.md`, code de sortie 1 sinon ;
+le précontrôle `--preflight` écrit `preflight.md` et ne valide jamais une livraison) :
 erreurs · texteHorsCadre · texteHorsZoneSure · texteTropPetit · chevauchement · couleurHorsCharte · tempsMort ·
 nonDeterministe · boucle (avec `--loop`) · fichierVideo (H.264, yuv420p bt709, AAC, 30 fps, nombre exact de frames) · loudness.
 - Les mesures viennent de `src/components/QAProbe.tsx`, qui enveloppe chaque film (sans effet sur l'image).
@@ -80,8 +81,9 @@ nonDeterministe · boucle (avec `--loop`) · fichierVideo (H.264, yuv420p bt709,
 - Chaque défaut du rapport donne la frame, la preuve et la consigne de correction.
 
 ## Boucle de correction (objectif + règle d'arrêt)
-Objectif : `npm run qa` à zéro sur les 3 formats **et** note `reviews/CRITIC.md` ≥ 8 (aucun critère < 7).
-À chaque tour : lire `qa.md`, corriger **le défaut le plus grave**, relancer `npm run qa -- <Film> <format>`.
+Objectif : `npm run qa` (validation finale) à zéro sur les 3 formats **et** note `reviews/CRITIC.md` ≥ 8 (aucun critère < 7).
+Pendant le travail, chaque tour utilise le précontrôle rapide : lire `preflight.md`, corriger **le défaut le plus grave**,
+relancer `npm run qa -- <Film> <format> --preflight`. Une fois à zéro : `npm run render`, puis `npm run qa -- <Film>` (toutes les frames, MP4).
 Arrêt : objectif atteint · 5 tours · ou un tour sans progrès (même défaut, même compteur) → s'arrêter et expliquer le blocage.
 Ne jamais déclarer réussi un contrôle qui n'a pas été exécuté. Un rendu n'est pas une validation.
 
@@ -95,9 +97,9 @@ Chaque défaut trouvé y est consigné (date, cause, correction du film, correct
 **Un défaut qui revient deux fois se corrige dans le studio** (règle, capteur ou brique), pas seulement dans le film.
 
 ## Boucle qualité (résumé)
-`stills` → regarder → corriger → `render --draft` → `qa` (zéro) → `critic` + note `CRITIC.md` → corriger les 3 pires défauts →
+`stills` → regarder → corriger → `qa --preflight` (zéro) → `render --draft` → `critic` + note `CRITIC.md` → corriger les 3 pires défauts →
 re-rendre. Livrable si qa = 0 et moyenne ≥ 8 sans critère < 7. Consigner dans `reviews/<id>/review.md` et `JOURNAL.md`.
-Terminer par `npm run check`, `npm run qa` et `npm run determinism`.
+Terminer par `npm test`, `npm run check`, `npm run render`, `npm run qa` (final) et `npm run determinism`.
 
 ## Git
 Committer les sources, jamais `out/`. Messages de commit en français, au présent (« Ajouter le film coffre-fort »).
