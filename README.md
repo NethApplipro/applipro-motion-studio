@@ -8,7 +8,8 @@ npm install
 npm run setup         # prépare le navigateur de rendu et les sons
 npm run studio        # aperçu interactif : timeline, lecture, textes modifiables dans « Props »
 npm run render        # rend les 3 formats dans out/
-npm run qa            # capteurs automatiques : tous les compteurs doivent être à 0
+npm test              # tests de régression des contrôles
+npm run qa            # validation technique finale : MP4 requis, toutes les frames
 ```
 Prérequis : Node 20+ (22 recommandé). ffmpeg est recommandé pour les planches de contrôle (`brew install ffmpeg`).
 
@@ -45,3 +46,10 @@ Applipro compte au plus 3 personnes : la licence gratuite de Remotion s'applique
 
 ## À compléter
 - En option : voix off (ElevenLabs, clé dans `.env`) et musique sous licence pour remplacer la nappe de synthèse.
+
+## Contrôler sans confondre aperçu et livraison
+- Pendant le travail : `npm run qa -- PremierJour --preflight` (une image sur cinq, aucun contrôle MP4).
+- Avant livraison : `npm run render -- PremierJour`, puis `npm run qa -- PremierJour` (chaque image, MP4 obligatoire, BT.709 et son contrôlés).
+- `--step=N` est réservé au précontrôle ; une valeur invalide est refusée avant le rendu.
+- Les rapports `preflight.md/json` restent séparés des rapports finaux `qa.md/json`. « Non contrôlé » ne signifie jamais réussi.
+- Les compteurs ne jugent ni l'intérêt du récit ni la qualité du mouvement. Le test de temps mort détecte uniquement une image strictement figée ; `--loop` compare les images aux extrémités. Visionnage et critique restent obligatoires.

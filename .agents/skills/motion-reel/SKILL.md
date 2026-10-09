@@ -29,7 +29,7 @@ validation avant de continuer, sauf si l'utilisateur a demandé un « run comple
    style (en composants réutilisables, pas dans le film). Mise en page par format via une table `LAYOUT` et `useFormat()`.
 6. **Stills.** `npm run check`, puis `npm run stills -- <Film> 9x16` et sur 1x1 et 16x9. Regarder chaque image : texte coupé,
    chevauchements, écrans vides, éléments hors cadre. Corriger. **Gate : images fixes validées.**
-7. **Capteurs puis premier montage.** `npm run qa -- <Film> 9x16` : boucle de correction jusqu'à zéro (le pire défaut à chaque
+7. **Capteurs puis premier montage.** `npm run qa -- <Film> 9x16 --preflight` : boucle de correction jusqu'à zéro (le pire défaut à chaque
    tour, 5 tours maximum, arrêt si un tour ne progresse pas, cf. `AGENTS.md`). Puis `npm run render -- <Film> 9x16 --draft`
    et critique **par un regard séparé** (sous-agent `motion-critic` ou passe dédiée) avec `reviews/CRITIC.md` :
    corriger les 3 pires défauts, re-rendre. 3 passes au maximum.

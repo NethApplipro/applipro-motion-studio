@@ -18,7 +18,7 @@ npm run studio                      # aperçu interactif, réglages modifiables 
 npm run new-film -- <slug> "Titre"  # crée films/<slug>/ + src/films/<slug>/ et l'enregistre
 npm run stills -- <Film> <format> [frames…]   # images de contrôle → reviews/<Film>/<format>/
 npm run render -- <Film> [formats…] [--draft] # MP4 → out/ (H.264 CRF 16, son à -14 LUFS)
-npm run qa -- <Film> [formats…] [--step=N] [--loop]  # capteurs automatiques, doivent tous être à 0
+npm run qa -- <Film> [formats…] [--loop]  # capteurs automatiques, doivent tous être à 0
 npm run critic -- out/<Film>-<format>.mp4     # planches + loudness → reviews/<id>/
 npm run determinism -- <Film>-<format> [frame]
 npm run ref -- <vidéo|image> [nom]  # prépare l'analyse d'une référence → references/inbox/<nom>/
@@ -105,3 +105,9 @@ Committer les sources, jamais `out/`. Messages de commit en français, au prése
 ## Licence et secrets
 Remotion : licence gratuite tant qu'Applipro compte au plus 3 personnes (https://www.remotion.dev/docs/license).
 Clés API (ElevenLabs…) dans `.env`, jamais dans un prompt ni dans git.
+
+## Précontrôle et validation finale
+`npm run qa -- <Film> --preflight [--step=N]` sert à corriger les compositions avant le MP4.
+Il écrit `preflight.md/json`, ignore explicitement vidéo et son et ne valide aucune livraison.
+`npm run qa -- <Film>` exige les MP4 et contrôle toutes les frames. Les rapports finaux restent `qa.md/json`.
+Lancer `npm test` après toute modification des contrôles. Un contrôle non exécuté apparaît « non contrôlé ».

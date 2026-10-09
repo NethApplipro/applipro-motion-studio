@@ -10,3 +10,6 @@ reviews/**/frames/
 references/inbox/**/*.jpg
 reviews/**/qa.md
 reviews/**/qa.json
+
+reviews/**/preflight.md
+reviews/**/preflight.json
