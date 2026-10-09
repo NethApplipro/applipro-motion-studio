@@ -18,7 +18,8 @@
     "icons": "node scripts/build-icons.mjs",
     "typecheck": "tsc --noEmit",
     "qa": "node scripts/qa.mjs",
-    "test": "node --test scripts/*.test.mjs"
+    "test": "node --test scripts/*.test.mjs",
+    "verdict": "node scripts/verdict.mjs"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.3.0",

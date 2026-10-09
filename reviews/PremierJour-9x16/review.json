@@ -1,0 +1,28 @@
+{
+  "id": "PremierJour-9x16",
+  "passe": 2,
+  "date": "2026-10-07",
+  "critique": "motion-critic",
+  "cible": "interne",
+  "notes": {"clarte": 8, "hierarchie": 8, "rythme": 8, "mouvement": 8, "lisibilite": 7, "marque": 8, "finition": 8},
+  "commentaires": {
+    "clarte": "Problème → app → preuve → signature, compréhensible sans le son",
+    "hierarchie": "Un sous-titre et un écran à la fois",
+    "rythme": "Un événement toutes les 1 à 3 s, calé sur 120 BPM",
+    "mouvement": "Téléphone heavy, micro UI snappy, aucun rebond",
+    "lisibilite": "Sous-titres lisibles ; le texte secondaire de l'UI reste petit (c'est du décor)",
+    "marque": "Poppins, palette officielle, Remix Icon, symbole officiel vectorisé",
+    "finition": "Superposition de sous-titres et écran vide corrigés en passe 2"
+  },
+  "corriges": [
+    "2,9–3,1 s : deux sous-titres superposés → Caption.tsx, entrée décalée de 6 frames.",
+    "2,9–3,2 s : téléphone à l'écran vide → timeline.ts, homeReveal passé de 98 à 88.",
+    "Planche stills : téléphone et chaos trop petits → LAYOUT (téléphone ×1,95, cartes ×1,5)."
+  ],
+  "defauts": [
+    {"t": [11, 12.5], "preuve": "Scène chiffre un peu nue.", "correctif": "Ajouter un fond de 100 points ou d'avatars seedés qui se remplissent."},
+    {"t": [8.2, 11], "preuve": "Bas de l'écran Copilote vide.", "correctif": "Faire monter le clavier ou ajouter une 2ᵉ question (Screens.tsx, CopilotScreen)."},
+    {"t": [12.5, 15], "preuve": "Symbole vectorisé depuis un JPG.", "correctif": "Remplacer brand/logo-mark.svg par le SVG d'origine s'il est retrouvé."}
+  ],
+  "controles": "déterminisme ✓ (frame 230), loudness -14,7 LUFS / -1,0 dBTP, 15 s, H.264."
+}

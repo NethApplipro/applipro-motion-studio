@@ -25,6 +25,8 @@ jobs:
       - run: npm run render -- PremierJour ${{ matrix.format }}
       - run: npm run qa -- PremierJour ${{ matrix.format }}
       - run: npm run determinism -- PremierJour-${{ matrix.format }}
+      # Verdict calculé : QA finale de ce format + critique committée (review.json) selon la cible du film.
+      - run: npm run verdict -- PremierJour ${{ matrix.format }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -32,4 +34,5 @@ jobs:
           path: |
             out/PremierJour-${{ matrix.format }}.mp4
             reviews/PremierJour-${{ matrix.format }}/qa.*
+            reviews/PremierJour-${{ matrix.format }}/review.md
           retention-days: 7
