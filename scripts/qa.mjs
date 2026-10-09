@@ -136,6 +136,7 @@ for (const format of formats) {
 	const list = details.map((d) => `- **${d.type}**${d.t === null ? '' : ` à ${d.t} s (frame ${d.frame})`} : ${d.detail}\n  → ${COUNTERS[d.type]}`).join('\n');
 	const md = `# QA — ${id}\n\n${preflight ? '**PRÉCONTRÔLE — ne valide pas une livraison.**' : '**VALIDATION TECHNIQUE — critique visuelle et sonore séparée obligatoire.**'}\n\n${total === 0 ? '**Aucun défaut détecté dans les contrôles exécutés.**' : `**${total} défaut(s).** Corriger le plus grave, relancer \`npm run qa -- ${film} ${format}\`.`}\n\n| | Compteur | Valeur |\n|---|---|---|\n${table}\n\nFrames contrôlées : ${frames.length} (une sur ${step}). Fichier vidéo : ${videoNote}.\n${list ? `\n## Détails\n${list}\n` : ''}`;
 	writeFileSync(`${dir}/${reportName}.md`, md);
+	if (list) console.log(list);
 	console.log(`${total === 0 ? '✓' : '✗'} ${id} : ${Object.entries(counts).filter(([, v]) => v).map(([k, v]) => `${k}=${v}`).join(', ') || (preflight ? 'précontrôle réussi, MP4 non contrôlé' : 'contrôles techniques réussis')} → ${dir}/${reportName}.md`);
 }
 process.exit(failed ? 1 : 0);

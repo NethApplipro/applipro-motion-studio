@@ -28,8 +28,9 @@ for (const format of formats) {
 			if (pct !== last) console.log(`${id} ${(last = pct)}%`);
 		},
 	});
+	// Marge de 0,5 dB avant AAC : éviter le dépassement de -1 dBTP après encodage.
 	// Le son est normalisé dans un fichier temporaire : un rendu raté n'écrase jamais une bonne version.
-	ffmpeg(['-i', raw, '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1:LRA=11', '-ar', '48000', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', tmp]);
+	ffmpeg(['-i', raw, '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', tmp]);
 	renameSync(tmp, final);
 	rmSync(raw, {force: true});
 	console.log(`✓ ${final}`);
